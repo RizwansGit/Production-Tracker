@@ -42,7 +42,7 @@
 
   .app { display: flex; min-height: 100vh; padding: 16px; gap: 16px; }
 
-  /* Orbit-style Sidebar */
+  /* Orbit Sidebar */
   .sidebar {
     width: 80px; flex-shrink: 0; background: var(--card-bg); border-radius: var(--radius-xl);
     display: flex; flex-direction: column; align-items: center; padding: 24px 12px;
@@ -67,10 +67,10 @@
   .conn-dot.ok { background: var(--green); box-shadow: 0 0 8px rgba(16, 185, 129, 0.5); }
   .conn-dot.bad { background: var(--red); }
 
-  /* Main Container */
+  /* Main Layout */
   .main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 
-  /* Orbit Top Bar */
+  /* Top Bar Controls */
   .topbar {
     background: var(--card-bg); border-radius: var(--radius-xl); padding: 12px 24px;
     display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -101,12 +101,11 @@
   .btn-secondary { background: var(--pill-light); color: var(--text); }
   .btn-secondary:hover { background: #e2e8f0; }
 
-  /* Content Canvas */
+  /* Dashboard Cards */
   .content { display: flex; flex-direction: column; gap: 16px; }
   .page { display: none; }
   .page.active { display: flex; flex-direction: column; gap: 16px; }
 
-  /* Floating Dashboard Cards */
   .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
   .stat-card {
     background: var(--card-bg); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-card);
@@ -119,7 +118,6 @@
   .stat-value.delayed { color: var(--amber); }
   .stat-value.stopped { color: var(--red); }
 
-  /* Charts Grid matching reference */
   .charts-row { display: grid; grid-template-columns: 1.2fr 1fr 0.8fr; gap: 16px; }
   .chart-card { background: var(--card-bg); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow-card); }
   .chart-card h4 { margin: 0 0 4px; font-size: 16px; font-weight: 800; }
@@ -204,7 +202,7 @@
   .divider { border: none; border-top: 1px solid var(--line); margin: 24px 0; }
   .section-title { font-size: 12px; font-weight: 800; color: var(--text-muted); margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.6px; }
 
-  /* File Upload Slots */
+  /* File Slot Upload */
   .file-slot { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 10px 14px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #fafafa; }
   .file-slot-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; font-weight: 600; }
   .file-slot-actions button { background: none; border: none; font-size: 12px; color: var(--blue); font-weight: 700; cursor: pointer; }
@@ -234,7 +232,7 @@
   .side-value { font-size: 14px; font-weight: 600; }
   .file-link { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--blue); font-weight: 700; padding: 8px 0; border-bottom: 1px dashed var(--line); cursor: pointer; }
 
-  /* Settings Grid */
+  /* Settings Lists */
   .settings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
   .list-card { background: var(--card-bg); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow-card); }
   .list-card h4 { margin: 0 0 14px; font-size: 16px; font-weight: 800; }
@@ -265,7 +263,7 @@
 
 <div class="app">
 
-  <!-- ORBIT SIDEBAR -->
+  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-mark">PT</div>
@@ -274,7 +272,7 @@
       <button class="nav-item active" data-page="dashboard" onclick="goToPage('dashboard')" title="Dashboard">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
       </button>
-      <button class="nav-item" data-page="settings" onclick="goToPage('settings')" title="Settings & Process Lists">
+      <button class="nav-item" data-page="settings" onclick="goToPage('settings')" title="Process Sequence Manager">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
       </button>
     </div>
@@ -286,7 +284,6 @@
   <!-- MAIN CANVAS -->
   <div class="main">
     
-    <!-- TOP BAR CONTROL -->
     <div class="topbar">
       <div class="top-pills">
         <button class="top-pill active" onclick="goToPage('dashboard')">Dashboard</button>
@@ -333,7 +330,7 @@
 
         <div class="charts-row">
           <div class="chart-card">
-            <h4>Finish Status</h4>
+            <h4>Running Status</h4>
             <div class="chart-sub">Operational status breakdown</div>
             <div class="donut-wrap">
               <div class="donut-canvas-box"><canvas id="statusDonut"></canvas></div>
@@ -381,10 +378,10 @@
                   <th>Customer</th>
                   <th>PO Details</th>
                   <th>Current Stage</th>
-                  <th>Tooling Stage</th>
+                  <th>Teeth Finish</th>
                   <th>Qty / Rate</th>
                   <th>Value (Lacs)</th>
-                  <th>Finish</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -452,7 +449,7 @@
       </div>
       <div class="field">
         <label>JON Date</label>
-        <input type="date" id="f_jonDate">
+        <input type="text" id="f_jonDate" placeholder="DD/MM/YYYY or DD-MM-YYYY">
       </div>
     </div>
 
@@ -463,14 +460,14 @@
       </div>
       <div class="field">
         <label>PO Date</label>
-        <input type="date" id="f_poDate">
+        <input type="text" id="f_poDate" placeholder="DD/MM/YYYY">
       </div>
     </div>
 
     <div class="field-row">
       <div class="field">
         <label>Due Date</label>
-        <input type="date" id="f_dueDate">
+        <input type="text" id="f_dueDate" placeholder="DD/MM/YYYY">
       </div>
       <div class="field">
         <label>Drawing No</label>
@@ -494,16 +491,22 @@
     </div>
 
     <hr class="divider">
-    <div class="section-title">Production Progress</div>
+    <div class="section-title">Production Details</div>
 
     <div class="field">
       <label>Current Stage</label>
       <select id="f_currentStage"></select>
     </div>
 
-    <div class="field">
-      <label>Tooling Stage</label>
-      <input type="text" id="f_toolingStage" placeholder="e.g. Stage 1 Ready">
+    <div class="field-row">
+      <div class="field">
+        <label>Teeth Finish Process</label>
+        <input type="text" id="f_finishProcess" placeholder="e.g. Ground, Lapped, Shaved">
+      </div>
+      <div class="field">
+        <label>Tooling Stage</label>
+        <input type="text" id="f_toolingStage" placeholder="e.g. Stage 1 Ready">
+      </div>
     </div>
 
     <div class="field-row">
@@ -523,8 +526,8 @@
         <input type="number" id="f_value" step="0.01" placeholder="0.00">
       </div>
       <div class="field">
-        <label>Finish Status</label>
-        <select id="f_finish">
+        <label>Project Status</label>
+        <select id="f_status">
           <option value="Running">Running</option>
           <option value="Delayed">Delayed</option>
           <option value="Stopped">Stopped</option>
@@ -564,8 +567,12 @@
       </div>
       <div class="side-col">
         <div class="side-block">
-          <div class="side-label">Finish Status</div>
+          <div class="side-label">Project Status</div>
           <div id="detailStatusPill"></div>
+        </div>
+        <div class="side-block">
+          <div class="side-label">Teeth Finish</div>
+          <div class="side-value" id="detailFinishProcess">-</div>
         </div>
         <div class="side-block">
           <div class="side-label">JON Date</div>
@@ -596,7 +603,7 @@
 
 <script>
 /* =========================================================
-   CONFIG & EMBEDDED API KEYS
+   CONFIG & EMBEDDED SUPABASE CREDENTIALS
    ========================================================= */
 const CONFIG = {
   SUPABASE_URL: "https://zjteklxokirhxqqgmhkm.supabase.co",
@@ -636,29 +643,56 @@ function setConnStatus(kind){
   document.getElementById('connDot').className = 'conn-dot ' + (kind || '');
 }
 
-/* ===================== DB I/O & MAPPING ===================== */
+/* ===================== DATA MAPPING (SEPARATING FINISH & STATUS) ===================== */
 function rowToPart(r){
   return {
-    id: r.id, month: r.month, jonNo: r.jon_no, jonDate: r.jon_date, poNum: r.po_num, poDate: r.po_date,
-    dueDate: r.due_date, customer: r.customer, drawingNo: r.drawing_no, finish: r.finish || 'Running',
-    qty: r.qty, currentStage: r.current_stage || lists.processes[0], toolingStage: r.tooling_stage,
-    setRate: r.set_rate, valueLacs: r.value_lacs,
-    dwgFileName: r.dwg_file_name, dwgFilePath: r.dwg_file_path,
-    toolingFileName: r.tooling_file_name, toolingFilePath: r.tooling_file_path,
+    id: r.id, 
+    month: r.month, 
+    jonNo: r.jon_no, 
+    jonDate: r.jon_date, 
+    poNum: r.po_num, 
+    poDate: r.po_date,
+    dueDate: r.due_date, 
+    customer: r.customer, 
+    drawingNo: r.drawing_no, 
+    finishProcess: r.finish_process || r.finish || '', // Component teeth finish[cite: 1]
+    status: r.status || 'Running',                     // Operational status[cite: 1]
+    qty: r.qty, 
+    currentStage: r.current_stage || lists.processes[0], 
+    toolingStage: r.tooling_stage,
+    setRate: r.set_rate, 
+    valueLacs: r.value_lacs,
+    dwgFileName: r.dwg_file_name, 
+    dwgFilePath: r.dwg_file_path,
+    toolingFileName: r.tooling_file_name, 
+    toolingFilePath: r.tooling_file_path,
     updatedAt: r.updated_at ? new Date(r.updated_at).getTime() : Date.now()
   };
 }
 
 function partToRow(p){
   return {
-    id: p.id, month: p.month || null, jon_no: p.jonNo || null, jon_date: p.jonDate || null,
-    po_num: p.poNum || null, po_date: p.poDate || null, due_date: p.dueDate || null,
-    customer: p.customer || null, drawing_no: p.drawingNo || null, finish: p.finish || 'Running',
-    qty: p.qty === '' ? null : p.qty, current_stage: p.currentStage || null,
-    tooling_stage: p.toolingStage || null, set_rate: p.setRate === '' ? null : p.setRate,
+    id: p.id, 
+    month: p.month || null, 
+    jon_no: p.jonNo || null, 
+    jon_date: p.jonDate || null,
+    po_num: p.poNum || null, 
+    po_date: p.poDate || null, 
+    due_date: p.dueDate || null,
+    customer: p.customer || null, 
+    drawing_no: p.drawingNo || null, 
+    finish: p.finishProcess || null,                    // Component finish[cite: 1]
+    finish_process: p.finishProcess || null,            // Component finish[cite: 1]
+    status: p.status || 'Running',                       // Operational status[cite: 1]
+    qty: p.qty === '' ? null : p.qty, 
+    current_stage: p.currentStage || null,
+    tooling_stage: p.toolingStage || null, 
+    set_rate: p.setRate === '' ? null : p.setRate,
     value_lacs: p.valueLacs === '' ? null : p.valueLacs,
-    dwg_file_name: p.dwgFileName || null, dwg_file_path: p.dwgFilePath || null,
-    tooling_file_name: p.toolingFileName || null, tooling_file_path: p.toolingFilePath || null,
+    dwg_file_name: p.dwgFileName || null, 
+    dwg_file_path: p.dwgFilePath || null,
+    tooling_file_name: p.toolingFileName || null, 
+    tooling_file_path: p.toolingFilePath || null,
     updated_at: new Date().toISOString()
   };
 }
@@ -727,7 +761,7 @@ function renderFileSlot(kind, part){
         <button onclick="markFileRemoved('${kind}')">Remove</button>
       </div></div>`;
   } else {
-    el.innerHTML = `<button class="upload-btn" type="button" onclick="document.getElementById('f_${kind}Input').click()"> Upload Drawing File</button>`;
+    el.innerHTML = `<button class="upload-btn" type="button" onclick="document.getElementById('f_${kind}Input').click()">Upload Drawing File</button>`;
   }
 }
 
@@ -757,7 +791,7 @@ function downloadPartFile(path, name){
   window.open(url, '_blank');
 }
 
-/* ===================== NAVIGATION & RENDERING ===================== */
+/* ===================== UI RENDERING & CHARTS ===================== */
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
@@ -790,16 +824,16 @@ function renderTable(){
   const statusF = document.getElementById('statusFilter').value;
 
   document.getElementById('statTotal').textContent = list.length;
-  document.getElementById('statRunning').textContent = list.filter(p => p.finish === 'Running').length;
-  document.getElementById('statDelayed').textContent = list.filter(p => p.finish === 'Delayed').length;
-  document.getElementById('statStopped').textContent = list.filter(p => p.finish === 'Stopped').length;
+  document.getElementById('statRunning').textContent = list.filter(p => p.status === 'Running').length;
+  document.getElementById('statDelayed').textContent = list.filter(p => p.status === 'Delayed').length;
+  document.getElementById('statStopped').textContent = list.filter(p => p.status === 'Stopped').length;
 
   let filtered = list.filter(p => {
     const matchSearch = !search || 
       (p.jonNo || '').toLowerCase().includes(search) || 
       (p.drawingNo || '').toLowerCase().includes(search) || 
       (p.customer || '').toLowerCase().includes(search);
-    const matchStatus = !statusF || p.finish === statusF;
+    const matchStatus = !statusF || p.status === statusF;
     return matchSearch && matchStatus;
   });
 
@@ -818,16 +852,16 @@ function renderTable(){
       <td>${escapeHtml(p.customer || '—')}</td>
       <td>
         <div>${escapeHtml(p.poNum || '—')}</div>
-        <div class="part-sub">Due: ${p.dueDate || '—'}</div>
+        <div class="part-sub">Due: ${escapeHtml(p.dueDate || '—')}</div>
       </td>
       <td><b>${escapeHtml(p.currentStage || '—')}</b></td>
-      <td>${escapeHtml(p.toolingStage || '—')}</td>
+      <td>${escapeHtml(p.finishProcess || '—')}</td>
       <td>
         <div>${p.qty ?? 0} pcs</div>
         <div class="part-sub">@ Rs.${p.setRate ?? 0}</div>
       </td>
       <td><b>Rs. ${p.valueLacs ?? '0.00'}</b></td>
-      <td><span class="pill ${statusClass(p.finish)}"><span class="dot"></span>${p.finish}</span></td>
+      <td><span class="pill ${statusClass(p.status)}"><span class="dot"></span>${p.status}</span></td>
       <td>
         <div class="row-actions" onclick="event.stopPropagation()">
           <button class="icon-btn" title="Edit" onclick="openPartDrawer('${p.id}')">
@@ -847,7 +881,7 @@ function renderCharts(){
   if(typeof Chart === 'undefined') return;
   const list = Object.values(parts);
   const counts = { Running: 0, Delayed: 0, Stopped: 0, Completed: 0 };
-  list.forEach(p => { counts[p.finish] = (counts[p.finish] || 0) + 1; });
+  list.forEach(p => { counts[p.status] = (counts[p.status] || 0) + 1; });
   const colors = { Running: '#10b981', Delayed: '#f59e0b', Stopped: '#ef4444', Completed: '#64748b' };
 
   const statusCtx = document.getElementById('statusDonut').getContext('2d');
@@ -955,11 +989,12 @@ function openPartDrawer(id){
   document.getElementById('f_dueDate').value = p ? p.dueDate || '' : '';
   document.getElementById('f_drawingNo').value = p ? p.drawingNo || '' : '';
   document.getElementById('f_currentStage').value = p ? p.currentStage || '' : (lists.processes[0] || '');
+  document.getElementById('f_finishProcess').value = p ? p.finishProcess || '' : '';
   document.getElementById('f_toolingStage').value = p ? p.toolingStage || '' : '';
   document.getElementById('f_qty').value = p ? p.qty || '' : '';
   document.getElementById('f_setRate').value = p ? p.setRate || '' : '';
   document.getElementById('f_value').value = p ? p.valueLacs || '' : '';
-  document.getElementById('f_finish').value = p ? p.finish || 'Running' : 'Running';
+  document.getElementById('f_status').value = p ? p.status || 'Running' : 'Running';
 
   renderFileSlot('dwg', p);
   renderFileSlot('tooling', p);
@@ -995,11 +1030,12 @@ async function savePart(){
     dueDate: document.getElementById('f_dueDate').value,
     drawingNo: document.getElementById('f_drawingNo').value,
     currentStage: document.getElementById('f_currentStage').value,
+    finishProcess: document.getElementById('f_finishProcess').value,
     toolingStage: document.getElementById('f_toolingStage').value,
     qty: document.getElementById('f_qty').value,
     setRate: document.getElementById('f_setRate').value,
     valueLacs: document.getElementById('f_value').value,
-    finish: document.getElementById('f_finish').value,
+    status: document.getElementById('f_status').value,
     dwgFileName: existing.dwgFileName || null,
     dwgFilePath: existing.dwgFilePath || null,
     toolingFileName: existing.toolingFileName || null,
@@ -1048,7 +1084,7 @@ async function deletePart(id){
   delete parts[id]; renderAll(); showToast('Deleted');
 }
 
-/* ===================== EXCEL EXPORT & IMPORT ===================== */
+/* ===================== EXCEL EXPORT & IMPORT (PRESERVES EXACT DATES) ===================== */
 const EXCEL_MAPPING = [
   'Month', 'JON no', 'JON Date', 'PO NUM', 'PO Date', 'DUE Date', 
   'Customer', 'Drawingno', 'Finish', 'Qty', 'Current stage', 'Tooling Stage', 
@@ -1068,7 +1104,7 @@ function exportToExcel(){
     'DUE Date': p.dueDate || '',
     'Customer': p.customer || '',
     'Drawingno': p.drawingNo || '',
-    'Finish': p.finish || 'Running',
+    'Finish': p.finishProcess || '',
     'Qty': p.qty || 0,
     'Current stage': p.currentStage || '',
     'Tooling Stage': p.toolingStage || '',
@@ -1090,24 +1126,27 @@ function handleImportFile(evt){
   reader.onload = async (e) => {
     try {
       const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data, { type: 'array' });
+      const wb = XLSX.read(data, { type: 'array', cellDates: true });
       const sheet = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+      
+      // raw: false forces formatted string output matching Excel date formats
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
 
       let imported = 0;
       for(const row of rows){
         const id = uid();
         const obj = {
           id,
-          month: row['Month'] || row['month'] || '',
+          month: String(row['Month'] || row['month'] || ''),
           jonNo: String(row['JON no'] || row['jon no'] || row['JON NO'] || id),
-          jonDate: row['JON Date'] || '',
+          jonDate: String(row['JON Date'] || row['jon date'] || ''),
           poNum: String(row['PO NUM'] || row['po num'] || ''),
-          poDate: row['PO Date'] || '',
-          dueDate: row['DUE Date'] || '',
-          customer: row['Customer'] || '',
+          poDate: String(row['PO Date'] || row['po date'] || ''),
+          dueDate: String(row['DUE Date'] || row['due date'] || ''),
+          customer: String(row['Customer'] || row['customer'] || ''),
           drawingNo: String(row['Drawingno'] || row['drawingno'] || row['Drawing No'] || ''),
-          finish: row['Finish'] || 'Running',
+          finishProcess: String(row['Finish'] || row['finish'] || ''), // Component finish
+          status: 'Running',                                           // Operational status default
           qty: row['Qty'] || 0,
           currentStage: row['Current stage'] || lists.processes[0],
           toolingStage: row['Tooling Stage'] || '',
@@ -1137,11 +1176,12 @@ function openDetail(id){
   document.getElementById('detailQty').textContent = `${p.qty || 0} pcs`;
   document.getElementById('detailSetRate').textContent = `Rs. ${p.setRate || 0}`;
   document.getElementById('detailValue').textContent = `Rs. ${p.valueLacs || '0.00'}`;
+  document.getElementById('detailFinishProcess').textContent = p.finishProcess || '—';
   document.getElementById('detailJonDate').textContent = p.jonDate || '—';
   document.getElementById('detailPoDetails').textContent = `${p.poNum || '—'} (${p.poDate || '—'})`;
   document.getElementById('detailDueDate').textContent = p.dueDate || '—';
   document.getElementById('detailToolingStage').textContent = p.toolingStage || '—';
-  document.getElementById('detailStatusPill').innerHTML = `<span class="pill ${statusClass(p.finish)}"><span class="dot"></span>${p.finish}</span>`;
+  document.getElementById('detailStatusPill').innerHTML = `<span class="pill ${statusClass(p.status)}"><span class="dot"></span>${p.status}</span>`;
 
   const stagesWrap = document.getElementById('detailStages');
   stagesWrap.innerHTML = '';
@@ -1159,8 +1199,8 @@ function openDetail(id){
     div.className = 'stage-badge' + (isCurrent ? ' current' : '');
     div.innerHTML = `
       <span style="font-weight:700;">${i+1}. ${escapeHtml(stage)}</span>
-      <span class="pill ${isDone ? 'completed' : (isCurrent ? statusClass(p.finish) : 'completed')}">
-        <span class="dot"></span>${isDone ? 'Done' : (isCurrent ? p.finish : 'Pending')}
+      <span class="pill ${isDone ? 'completed' : (isCurrent ? statusClass(p.status) : 'completed')}">
+        <span class="dot"></span>${isDone ? 'Done' : (isCurrent ? p.status : 'Pending')}
       </span>
     `;
     stagesWrap.appendChild(div);
