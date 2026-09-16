@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Production Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-main: #eef2f6;
+    --card-bg: #ffffff;
+    --navy: #0f172a;
+    --pill-dark: #1e293b;
+    --pill-light: #f1f5f9;
+    --blue: #3b82f6;
+    --blue-soft: #eff6ff;
+    --pink: #f43f5e;
+    --pink-soft: #fff1f2;
+    --green: #10b981;
+    --green-soft: #ecfdf5;
+    --amber: #f59e0b;
+    --amber-soft: #fffbeb;
+    --red: #ef4444;
+    --line: #e2e8f0;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-pill: 9999px;
+    --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; background: var(--bg-main); color: var(--text); -webkit-font-smoothing: antialiased; }
+  button, input, select, textarea { font-family: inherit; }
+
+  .app { display: flex; min-height: 100vh; padding: 16px; gap: 16px; }
+
+  /* Orbit-style Sidebar */
+  .sidebar {
+    width: 80px; flex-shrink: 0; background: var(--card-bg); border-radius: var(--radius-xl);
+    display: flex; flex-direction: column; align-items: center; padding: 24px 12px;
+    box-shadow: var(--shadow-card); z-index: 20; position: sticky; top: 16px; height: calc(100vh - 32px);
+  }
+  .brand { display: flex; align-items: center; justify-content: center; margin-bottom: 32px; }
+  .brand-mark {
+    width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--navy);
+    display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 16px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+  }
+  .nav-group { display: flex; flex-direction: column; gap: 12px; width: 100%; align-items: center; }
+  .nav-item {
+    width: 48px; height: 48px; border-radius: var(--radius-md); color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center; background: transparent; border: none; cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .nav-item:hover { background: var(--pill-light); color: var(--navy); }
+  .nav-item.active { background: var(--navy); color: #fff; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2); }
+  .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .conn-dot { width: 10px; height: 10px; border-radius: 50%; background: #94a3b8; }
+  .conn-dot.ok { background: var(--green); box-shadow: 0 0 8px rgba(16, 185, 129, 0.5); }
+  .conn-dot.bad { background: var(--red); }
+
+  /* Main Container */
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+
+  /* Orbit Top Bar */
+  .topbar {
+    background: var(--card-bg); border-radius: var(--radius-xl); padding: 12px 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    box-shadow: var(--shadow-card); flex-wrap: wrap;
+  }
+  .top-pills { display: flex; align-items: center; gap: 8px; background: var(--pill-light); padding: 4px; border-radius: var(--radius-pill); }
+  .top-pill {
+    padding: 8px 18px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 600; color: var(--text-muted);
+    border: none; background: transparent; cursor: pointer; transition: all 0.2s ease;
+  }
+  .top-pill.active { background: var(--navy); color: #fff; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15); }
+
+  .actions-group { display: flex; align-items: center; gap: 10px; }
+  .search-wrap { position: relative; width: 220px; }
+  .search-wrap input {
+    width: 100%; padding: 8px 12px 8px 36px; border: 1px solid var(--line); border-radius: var(--radius-pill);
+    font-size: 13px; background: var(--bg-main); transition: all 0.2s;
+  }
+  .search-wrap input:focus { outline: none; border-color: var(--blue); background: #fff; }
+  .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+  .btn {
+    border: none; border-radius: var(--radius-pill); padding: 9px 18px; font-size: 13px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s ease;
+  }
+  .btn-primary { background: var(--navy); color: #fff; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15); }
+  .btn-primary:hover { transform: translateY(-1px); background: #1e293b; }
+  .btn-secondary { background: var(--pill-light); color: var(--text); }
+  .btn-secondary:hover { background: #e2e8f0; }
+
+  /* Content Canvas */
+  .content { display: flex; flex-direction: column; gap: 16px; }
+  .page { display: none; }
+  .page.active { display: flex; flex-direction: column; gap: 16px; }
+
+  /* Floating Dashboard Cards */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat-card {
+    background: var(--card-bg); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-card);
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .stat-label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-value { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+  .stat-value.running { color: var(--green); }
+  .stat-value.delayed { color: var(--amber); }
+  .stat-value.stopped { color: var(--red); }
+
+  /* Charts Grid matching reference */
+  .charts-row { display: grid; grid-template-columns: 1.2fr 1fr 0.8fr; gap: 16px; }
+  .chart-card { background: var(--card-bg); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow-card); }
+  .chart-card h4 { margin: 0 0 4px; font-size: 16px; font-weight: 800; }
+  .chart-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+  .donut-wrap { display: flex; align-items: center; gap: 20px; }
+  .donut-canvas-box { position: relative; width: 140px; height: 140px; flex-shrink: 0; }
+  .donut-legend { flex: 1; }
+  .legend-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+  .legend-row:last-child { border-bottom: none; }
+  .legend-row .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+  .legend-row .lbl { display: flex; align-items: center; color: var(--text-muted); font-weight: 500; }
+  .legend-row .num { font-weight: 700; color: var(--text); }
+  
+  .gauge-wrap { position: relative; width: 100%; height: 150px; display: flex; align-items: center; justify-content: center; }
+  .gauge-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+  .gauge-center b { font-size: 28px; font-weight: 800; display: block; line-height: 1; }
+  .gauge-center span { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+
+  .mini-stat-col { display: flex; flex-direction: column; gap: 16px; }
+  .mini-stat-card {
+    background: var(--card-bg); border-radius: var(--radius-xl); padding: 20px; box-shadow: var(--shadow-card); flex: 1;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .mini-stat-card .label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+  .mini-stat-card .val { font-size: 24px; font-weight: 800; }
+
+  /* Table Card */
+  .table-card { background: var(--card-bg); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-card); }
+  .table-card-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--line); }
+  .table-card-header h3 { margin: 0; font-size: 17px; font-weight: 800; }
+  
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead th {
+    text-align: left; font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px;
+    padding: 14px 20px; border-bottom: 1px solid var(--line); background: #fafafa;
+  }
+  tbody td { padding: 16px 20px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background 0.15s ease; }
+  tbody tr:hover { background: #f8fafc; cursor: pointer; }
+  .part-name-cell { font-weight: 700; color: var(--navy); }
+  .part-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 700; }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .pill.running { background: var(--green-soft); color: var(--green); }
+  .pill.running .dot { background: var(--green); }
+  .pill.delayed { background: var(--amber-soft); color: var(--amber); }
+  .pill.delayed .dot { background: var(--amber); }
+  .pill.stopped { background: var(--pink-soft); color: var(--pink); }
+  .pill.stopped .dot { background: var(--pink); }
+  .pill.completed { background: var(--pill-light); color: var(--text-muted); }
+  .pill.completed .dot { background: var(--text-muted); }
+
+  .row-actions { display: flex; gap: 4px; }
+  .icon-btn { background: none; border: none; padding: 6px; border-radius: var(--radius-md); color: var(--text-muted); cursor: pointer; }
+  .icon-btn:hover { background: var(--pill-light); color: var(--navy); }
+  .empty-state { padding: 60px 20px; text-align: center; color: var(--text-muted); }
+
+  /* Drawer Overlay & Inputs */
+  .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 30; display: none; }
+  .overlay.show { display: block; }
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 520px; max-width: 100%; background: var(--card-bg); z-index: 40;
+    box-shadow: -10px 0 40px rgba(0,0,0,0.1); transform: translateX(100%); transition: transform .25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: column;
+  }
+  .drawer.show { transform: translateX(0); }
+  .drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 24px; border-bottom: 1px solid var(--line); }
+  .drawer-header h3 { margin: 0; font-size: 18px; font-weight: 800; }
+  .drawer-body { padding: 24px; overflow-y: auto; flex: 1; }
+  .drawer-footer { padding: 20px 24px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 12px; background: #fafafa; }
+
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .field input[type=text], .field input[type=number], .field input[type=date], .field select, .field textarea {
+    width: 100%; padding: 10px 14px; border: 1px solid var(--line); border-radius: var(--radius-md); font-size: 13.5px; background: #fff; color: var(--text);
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--blue); }
+  .field-row { display: flex; gap: 12px; }
+  .field-row .field { flex: 1; }
+  .divider { border: none; border-top: 1px solid var(--line); margin: 24px 0; }
+  .section-title { font-size: 12px; font-weight: 800; color: var(--text-muted); margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.6px; }
+
+  /* File Upload Slots */
+  .file-slot { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 10px 14px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #fafafa; }
+  .file-slot-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; font-weight: 600; }
+  .file-slot-actions button { background: none; border: none; font-size: 12px; color: var(--blue); font-weight: 700; cursor: pointer; }
+  .hidden-file-input { display: none; }
+  .upload-btn { background: #fafafa; border: 1px dashed var(--line); border-radius: var(--radius-md); padding: 12px; font-size: 13px; color: var(--text-muted); font-weight: 600; width: 100%; text-align: center; cursor: pointer; }
+  .upload-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-soft); }
+
+  /* Details Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 30; display: none; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; }
+  .modal-overlay.show { display: flex; }
+  .modal-card { background: var(--card-bg); border-radius: var(--radius-xl); max-width: 1000px; width: 100%; overflow: hidden; box-shadow: var(--shadow-card); }
+  .modal-topbar { display: flex; align-items: center; justify-content: space-between; padding: 24px; border-bottom: 1px solid var(--line); background: #fafafa; }
+  .modal-topbar h2 { margin: 0; font-size: 20px; font-weight: 800; }
+  .modal-topbar .part-meta { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .modal-close { background: none; border: none; font-size: 22px; color: var(--text-muted); cursor: pointer; }
+  .modal-grid { display: grid; grid-template-columns: 1fr 340px; gap: 0; }
+  .pipeline-col { padding: 24px; border-right: 1px solid var(--line); }
+  .pipeline-stats { display: flex; gap: 24px; margin-bottom: 24px; flex-wrap: wrap; background: var(--bg-main); padding: 16px; border-radius: var(--radius-md); }
+  .pipeline-stat { font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+  .pipeline-stat b { display: block; font-size: 16px; color: var(--text); margin-top: 2px; }
+  .stage-badge { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+  .stage-badge.current { border-color: var(--blue); background: var(--blue-soft); }
+  .stage-arrow { text-align: center; color: #cbd5e1; font-size: 14px; margin: 2px 0; }
+  .side-col { padding: 24px; background: #fafafa; }
+  .side-block { margin-bottom: 20px; }
+  .side-label { font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
+  .side-value { font-size: 14px; font-weight: 600; }
+  .file-link { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--blue); font-weight: 700; padding: 8px 0; border-bottom: 1px dashed var(--line); cursor: pointer; }
+
+  /* Settings Grid */
+  .settings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .list-card { background: var(--card-bg); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow-card); }
+  .list-card h4 { margin: 0 0 14px; font-size: 16px; font-weight: 800; }
+  .list-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+  .list-item button { background: none; border: none; color: var(--text-muted); font-size: 13px; cursor: pointer; font-weight: 700; }
+  .list-item button:hover { color: var(--red); }
+  .add-item-row { display: flex; gap: 8px; margin-top: 14px; }
+  .add-item-row input { flex: 1; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-pill); font-size: 13px; }
+  .add-item-row button { background: var(--navy); color: #fff; border: none; border-radius: var(--radius-pill); padding: 0 16px; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--navy); color: #fff; padding: 12px 20px; border-radius: var(--radius-pill); font-size: 13.5px; font-weight: 600; z-index: 60; box-shadow: var(--shadow-card); opacity: 0; transform: translateY(8px); transition: all .2s ease; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 1100px) {
+    .charts-row { grid-template-columns: 1fr 1fr; }
+    .charts-row .mini-stat-col { grid-column: span 2; flex-direction: row; }
+  }
+  @media (max-width: 850px) {
+    .app { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; flex-direction: row; justify-content: space-between; }
+    .nav-group { flex-direction: row; width: auto; }
+    .charts-row { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ORBIT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">PT</div>
+    </div>
+    <div class="nav-group">
+      <button class="nav-item active" data-page="dashboard" onclick="goToPage('dashboard')" title="Dashboard">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      </button>
+      <button class="nav-item" data-page="settings" onclick="goToPage('settings')" title="Settings & Process Lists">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-footer">
+      <span class="conn-dot" id="connDot" title="Database status"></span>
+    </div>
+  </aside>
+
+  <!-- MAIN CANVAS -->
+  <div class="main">
+    
+    <!-- TOP BAR CONTROL -->
+    <div class="topbar">
+      <div class="top-pills">
+        <button class="top-pill active" onclick="goToPage('dashboard')">Dashboard</button>
+        <button class="top-pill" onclick="goToPage('settings')">Process Manager</button>
+      </div>
+
+      <div class="actions-group">
+        <div class="search-wrap" id="dashboardSearchWrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="searchInput" placeholder="Search JON, DWG..." oninput="renderTable()">
+        </div>
+
+        <button class="btn btn-secondary" onclick="refreshAll()">Refresh</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('importInput').click()">Import Excel</button>
+        <input type="file" id="importInput" class="hidden-file-input" accept=".xlsx,.xls,.csv" onchange="handleImportFile(event)">
+        <button class="btn btn-secondary" onclick="exportToExcel()">Export</button>
+        <button class="btn btn-primary" onclick="openPartDrawer(null)">+ New Entry</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD PAGE -->
+      <div class="page active" id="page-dashboard">
+        
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-header"><span class="stat-label">Total Jobs</span></div>
+            <div class="stat-value" id="statTotal">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header"><span class="stat-label">Running</span></div>
+            <div class="stat-value running" id="statRunning">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header"><span class="stat-label">Delayed</span></div>
+            <div class="stat-value delayed" id="statDelayed">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header"><span class="stat-label">Stopped</span></div>
+            <div class="stat-value stopped" id="statStopped">0</div>
+          </div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-card">
+            <h4>Finish Status</h4>
+            <div class="chart-sub">Operational status breakdown</div>
+            <div class="donut-wrap">
+              <div class="donut-canvas-box"><canvas id="statusDonut"></canvas></div>
+              <div class="donut-legend" id="statusLegend"></div>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <h4>Avg Pipeline Completion</h4>
+            <div class="chart-sub">Overall stage progress</div>
+            <div class="gauge-wrap">
+              <canvas id="completionGauge"></canvas>
+              <div class="gauge-center"><b id="gaugeNum">0%</b><span>Progress</span></div>
+            </div>
+          </div>
+
+          <div class="mini-stat-col">
+            <div class="mini-stat-card">
+              <div class="label">Total Quantity</div>
+              <div class="val" id="miniTotalQty">0</div>
+            </div>
+            <div class="mini-stat-card">
+              <div class="label">Total Value (Rs. Lacs)</div>
+              <div class="val" id="miniTotalValue">0.00</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Production Registry</h3>
+            <select style="border:1px solid var(--line); border-radius:var(--radius-pill); padding:6px 14px; font-size:12.5px; font-weight:600;" id="statusFilter" onchange="renderTable()">
+              <option value="">All Statuses</option>
+              <option value="Running">Running</option>
+              <option value="Delayed">Delayed</option>
+              <option value="Stopped">Stopped</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>JON / Drawing</th>
+                  <th>Customer</th>
+                  <th>PO Details</th>
+                  <th>Current Stage</th>
+                  <th>Tooling Stage</th>
+                  <th>Qty / Rate</th>
+                  <th>Value (Lacs)</th>
+                  <th>Finish</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="emptyState" style="display:none;">
+            <h4>No records found</h4>
+            <p>Import an Excel file or create a new order entry.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SETTINGS PAGE -->
+      <div class="page" id="page-settings">
+        <div class="settings-grid">
+          <div class="list-card">
+            <h4>Process Sequence Stages</h4>
+            <div id="listProcesses"></div>
+            <div class="add-item-row">
+              <input type="text" id="newProcess" placeholder="Add process stage">
+              <button onclick="addListItem('processes','newProcess')">Add Stage</button>
+            </div>
+          </div>
+
+          <div class="list-card">
+            <h4>Customers</h4>
+            <div id="listCustomers"></div>
+            <div class="add-item-row">
+              <input type="text" id="newCustomer" placeholder="Add customer name">
+              <button onclick="addListItem('customers','newCustomer')">Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ADD / EDIT DRAWER -->
+<div class="overlay" id="drawerOverlay" onclick="closePartDrawer()"></div>
+<div class="drawer" id="partDrawer">
+  <div class="drawer-header">
+    <h3 id="drawerTitle">New Order Entry</h3>
+    <button class="modal-close" onclick="closePartDrawer()">&times;</button>
+  </div>
+  <div class="drawer-body">
+    <div class="field-row">
+      <div class="field">
+        <label>Month</label>
+        <input type="text" id="f_month" placeholder="e.g. October">
+      </div>
+      <div class="field">
+        <label>Customer</label>
+        <select id="f_customer"></select>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>JON No</label>
+        <input type="text" id="f_jonNo" placeholder="e.g. JON-1024">
+      </div>
+      <div class="field">
+        <label>JON Date</label>
+        <input type="date" id="f_jonDate">
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>PO Num</label>
+        <input type="text" id="f_poNum" placeholder="e.g. PO-8831">
+      </div>
+      <div class="field">
+        <label>PO Date</label>
+        <input type="date" id="f_poDate">
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Due Date</label>
+        <input type="date" id="f_dueDate">
+      </div>
+      <div class="field">
+        <label>Drawing No</label>
+        <input type="text" id="f_drawingNo" placeholder="e.g. DWG-4421-B">
+      </div>
+    </div>
+
+    <hr class="divider">
+    <div class="section-title">Drawing Files</div>
+
+    <div class="field">
+      <label>Drawing (DWG / PDF)</label>
+      <div id="f_dwgSlot"></div>
+      <input type="file" id="f_dwgInput" class="hidden-file-input" onchange="handleFileSelect(event,'dwg')">
+    </div>
+
+    <div class="field">
+      <label>Tooling Drawing</label>
+      <div id="f_toolingSlot"></div>
+      <input type="file" id="f_toolingInput" class="hidden-file-input" onchange="handleFileSelect(event,'tooling')">
+    </div>
+
+    <hr class="divider">
+    <div class="section-title">Production Progress</div>
+
+    <div class="field">
+      <label>Current Stage</label>
+      <select id="f_currentStage"></select>
+    </div>
+
+    <div class="field">
+      <label>Tooling Stage</label>
+      <input type="text" id="f_toolingStage" placeholder="e.g. Stage 1 Ready">
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Qty</label>
+        <input type="number" id="f_qty" min="0" placeholder="0" oninput="calculateValue()">
+      </div>
+      <div class="field">
+        <label>Set Rate (Rs)</label>
+        <input type="number" id="f_setRate" min="0" step="0.01" placeholder="0.00" oninput="calculateValue()">
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Value (Rs. Lacs)</label>
+        <input type="number" id="f_value" step="0.01" placeholder="0.00">
+      </div>
+      <div class="field">
+        <label>Finish Status</label>
+        <select id="f_finish">
+          <option value="Running">Running</option>
+          <option value="Delayed">Delayed</option>
+          <option value="Stopped">Stopped</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn btn-secondary" onclick="closePartDrawer()">Cancel</button>
+    <button class="btn btn-primary" id="saveBtn" onclick="savePart()">Save Entry</button>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detailOverlay" onclick="if(event.target===this) closeDetail()">
+  <div class="modal-card">
+    <div class="modal-topbar">
+      <div>
+        <h2 id="detailTitle">JON Details</h2>
+        <div class="part-meta" id="detailSub">Customer Meta</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-secondary" onclick="editFromDetail()">Edit Record</button>
+        <button class="modal-close" onclick="closeDetail()">&times;</button>
+      </div>
+    </div>
+    <div class="modal-grid">
+      <div class="pipeline-col">
+        <div class="pipeline-stats">
+          <div class="pipeline-stat">Quantity<b id="detailQty">-</b></div>
+          <div class="pipeline-stat">Set Rate<b id="detailSetRate">-</b></div>
+          <div class="pipeline-stat">Value (Lacs)<b id="detailValue">-</b></div>
+        </div>
+        <div class="section-title">Stage Progress</div>
+        <div id="detailStages"></div>
+      </div>
+      <div class="side-col">
+        <div class="side-block">
+          <div class="side-label">Finish Status</div>
+          <div id="detailStatusPill"></div>
+        </div>
+        <div class="side-block">
+          <div class="side-label">JON Date</div>
+          <div class="side-value" id="detailJonDate">-</div>
+        </div>
+        <div class="side-block">
+          <div class="side-label">PO Details</div>
+          <div class="side-value" id="detailPoDetails">-</div>
+        </div>
+        <div class="side-block">
+          <div class="side-label">Due Date</div>
+          <div class="side-value" id="detailDueDate">-</div>
+        </div>
+        <div class="side-block">
+          <div class="side-label">Tooling Stage</div>
+          <div class="side-value" id="detailToolingStage">-</div>
+        </div>
+        <div class="side-block">
+          <div class="side-label">Attached Files</div>
+          <div id="detailFiles"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   CONFIG & EMBEDDED API KEYS
+   ========================================================= */
+const CONFIG = {
+  SUPABASE_URL: "https://zjteklxokirhxqqgmhkm.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_X4ZfK1GtJEAVvFtadbs7oQ_sPg9Ytji",
+  BUCKET_NAME: "drawings"
+};
+
+const DEFAULT_PROCESS_STAGES = [
+  "MATERIAL REQUESTED", "BLANKING", "GEAR GENERATION", "TURNING 2", 
+  "SPLINE / SHAPING", "HEAT TREATMENT", "GRINDING", "THREAD GRINDING", 
+  "GEAR GRINDNG", "SHOT PEENING"
+];
+
+let sb = null;
+let parts = {};
+let lists = { customers: [], processes: [...DEFAULT_PROCESS_STAGES] };
+let editingId = null;
+let detailId = null;
+let pendingFiles = { dwg: null, tooling: null };
+let removedFiles = { dwg: false, tooling: false };
+let statusChartInst = null, gaugeChartInst = null;
+
+function uid(){ return 'j_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function initSupabase(){
+  try {
+    sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+    setConnStatus('ok');
+    return true;
+  } catch(e) {
+    setConnStatus('bad');
+    return false;
+  }
+}
+
+function setConnStatus(kind){
+  document.getElementById('connDot').className = 'conn-dot ' + (kind || '');
+}
+
+/* ===================== DB I/O & MAPPING ===================== */
+function rowToPart(r){
+  return {
+    id: r.id, month: r.month, jonNo: r.jon_no, jonDate: r.jon_date, poNum: r.po_num, poDate: r.po_date,
+    dueDate: r.due_date, customer: r.customer, drawingNo: r.drawing_no, finish: r.finish || 'Running',
+    qty: r.qty, currentStage: r.current_stage || lists.processes[0], toolingStage: r.tooling_stage,
+    setRate: r.set_rate, valueLacs: r.value_lacs,
+    dwgFileName: r.dwg_file_name, dwgFilePath: r.dwg_file_path,
+    toolingFileName: r.tooling_file_name, toolingFilePath: r.tooling_file_path,
+    updatedAt: r.updated_at ? new Date(r.updated_at).getTime() : Date.now()
+  };
+}
+
+function partToRow(p){
+  return {
+    id: p.id, month: p.month || null, jon_no: p.jonNo || null, jon_date: p.jonDate || null,
+    po_num: p.poNum || null, po_date: p.poDate || null, due_date: p.dueDate || null,
+    customer: p.customer || null, drawing_no: p.drawingNo || null, finish: p.finish || 'Running',
+    qty: p.qty === '' ? null : p.qty, current_stage: p.currentStage || null,
+    tooling_stage: p.toolingStage || null, set_rate: p.setRate === '' ? null : p.setRate,
+    value_lacs: p.valueLacs === '' ? null : p.valueLacs,
+    dwg_file_name: p.dwgFileName || null, dwg_file_path: p.dwgFilePath || null,
+    tooling_file_name: p.toolingFileName || null, tooling_file_path: p.toolingFilePath || null,
+    updated_at: new Date().toISOString()
+  };
+}
+
+async function loadParts(){
+  if(!sb) return;
+  const { data, error } = await sb.from('production_orders').select('*').order('updated_at', { ascending: false });
+  if(error){ setConnStatus('bad'); console.error(error); return; }
+  parts = {};
+  (data || []).forEach(r => parts[r.id] = rowToPart(r));
+  setConnStatus('ok');
+}
+
+async function loadLists(){
+  if(!sb) return;
+  const { data } = await sb.from('app_lists').select('*').eq('id', 'main').maybeSingle();
+  if(data){
+    lists.customers = data.customers || [];
+    lists.processes = (data.processes && data.processes.length) ? data.processes : [...DEFAULT_PROCESS_STAGES];
+  } else {
+    await saveLists();
+  }
+}
+
+async function saveLists(){
+  if(!sb) return;
+  await sb.from('app_lists').upsert({ id: 'main', customers: lists.customers, processes: lists.processes });
+}
+
+/* ===================== FILE UPLOADS ===================== */
+async function uploadFile(partId, kind, file){
+  if(!sb) return null;
+  const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+  const path = `${partId}/${kind}-${Date.now()}-${safeName}`;
+  const { error } = await sb.storage.from(CONFIG.BUCKET_NAME).upload(path, file, { upsert: true });
+  if(error){ showToast('Upload failed: ' + error.message); return null; }
+  return path;
+}
+
+function getPublicUrl(path){
+  if(!sb || !path) return null;
+  const { data } = sb.storage.from(CONFIG.BUCKET_NAME).getPublicUrl(path);
+  return data ? data.publicUrl : null;
+}
+
+async function deleteFileAtPath(path){
+  if(!sb || !path) return;
+  try { await sb.storage.from(CONFIG.BUCKET_NAME).remove([path]); } catch(e){}
+}
+
+function renderFileSlot(kind, part){
+  const slotId = kind === 'dwg' ? 'f_dwgSlot' : 'f_toolingSlot';
+  const el = document.getElementById(slotId);
+  const existingName = part ? (kind === 'dwg' ? part.dwgFileName : part.toolingFileName) : null;
+  const existingPath = part ? (kind === 'dwg' ? part.dwgFilePath : part.toolingFilePath) : null;
+  const pending = pendingFiles[kind];
+  const removed = removedFiles[kind];
+
+  if(pending){
+    el.innerHTML = `<div class="file-slot"><span class="file-slot-name">${escapeHtml(pending.name)}</span>
+      <div class="file-slot-actions"><button onclick="clearPendingFile('${kind}')">Remove</button></div></div>`;
+  } else if(existingName && !removed){
+    el.innerHTML = `<div class="file-slot"><span class="file-slot-name">${escapeHtml(existingName)}</span>
+      <div class="file-slot-actions">
+        <button onclick="downloadPartFile('${existingPath}','${escapeHtml(existingName)}')">Download</button>
+        <button onclick="markFileRemoved('${kind}')">Remove</button>
+      </div></div>`;
+  } else {
+    el.innerHTML = `<button class="upload-btn" type="button" onclick="document.getElementById('f_${kind}Input').click()"> Upload Drawing File</button>`;
+  }
+}
+
+function handleFileSelect(evt, kind){
+  const file = evt.target.files[0];
+  if(!file) return;
+  pendingFiles[kind] = file;
+  removedFiles[kind] = false;
+  renderFileSlot(kind, editingId ? parts[editingId] : null);
+}
+
+function clearPendingFile(kind){
+  pendingFiles[kind] = null;
+  document.getElementById('f_' + kind + 'Input').value = '';
+  renderFileSlot(kind, editingId ? parts[editingId] : null);
+}
+
+function markFileRemoved(kind){
+  removedFiles[kind] = true;
+  pendingFiles[kind] = null;
+  renderFileSlot(kind, editingId ? parts[editingId] : null);
+}
+
+function downloadPartFile(path, name){
+  const url = getPublicUrl(path);
+  if(!url){ showToast('File URL error'); return; }
+  window.open(url, '_blank');
+}
+
+/* ===================== NAVIGATION & RENDERING ===================== */
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function goToPage(page){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.top-pill').forEach((n, i) => n.classList.toggle('active', (i===0 && page==='dashboard') || (i===1 && page==='settings')));
+  if(page==='settings') renderSettingsLists();
+}
+
+async function refreshAll(){
+  showToast('Refreshing system...');
+  await loadParts(); await loadLists(); renderAll();
+}
+
+function renderAll(){
+  renderTable(); renderCharts(); renderSettingsLists();
+}
+
+function statusClass(status){
+  return { Running: 'running', Delayed: 'delayed', Stopped: 'stopped', Completed: 'completed' }[status] || 'running';
+}
+
+function renderTable(){
+  const list = Object.values(parts);
+  const search = (document.getElementById('searchInput').value || '').toLowerCase();
+  const statusF = document.getElementById('statusFilter').value;
+
+  document.getElementById('statTotal').textContent = list.length;
+  document.getElementById('statRunning').textContent = list.filter(p => p.finish === 'Running').length;
+  document.getElementById('statDelayed').textContent = list.filter(p => p.finish === 'Delayed').length;
+  document.getElementById('statStopped').textContent = list.filter(p => p.finish === 'Stopped').length;
+
+  let filtered = list.filter(p => {
+    const matchSearch = !search || 
+      (p.jonNo || '').toLowerCase().includes(search) || 
+      (p.drawingNo || '').toLowerCase().includes(search) || 
+      (p.customer || '').toLowerCase().includes(search);
+    const matchStatus = !statusF || p.finish === statusF;
+    return matchSearch && matchStatus;
+  });
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  document.getElementById('emptyState').style.display = filtered.length ? 'none' : 'block';
+
+  filtered.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.onclick = () => openDetail(p.id);
+    tr.innerHTML = `
+      <td>
+        <div class="part-name-cell">${escapeHtml(p.jonNo || '—')}</div>
+        <div class="part-sub">DWG: ${escapeHtml(p.drawingNo || '—')}</div>
+      </td>
+      <td>${escapeHtml(p.customer || '—')}</td>
+      <td>
+        <div>${escapeHtml(p.poNum || '—')}</div>
+        <div class="part-sub">Due: ${p.dueDate || '—'}</div>
+      </td>
+      <td><b>${escapeHtml(p.currentStage || '—')}</b></td>
+      <td>${escapeHtml(p.toolingStage || '—')}</td>
+      <td>
+        <div>${p.qty ?? 0} pcs</div>
+        <div class="part-sub">@ Rs.${p.setRate ?? 0}</div>
+      </td>
+      <td><b>Rs. ${p.valueLacs ?? '0.00'}</b></td>
+      <td><span class="pill ${statusClass(p.finish)}"><span class="dot"></span>${p.finish}</span></td>
+      <td>
+        <div class="row-actions" onclick="event.stopPropagation()">
+          <button class="icon-btn" title="Edit" onclick="openPartDrawer('${p.id}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.85 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+          </button>
+          <button class="icon-btn" title="Delete" onclick="deletePart('${p.id}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          </button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderCharts(){
+  if(typeof Chart === 'undefined') return;
+  const list = Object.values(parts);
+  const counts = { Running: 0, Delayed: 0, Stopped: 0, Completed: 0 };
+  list.forEach(p => { counts[p.finish] = (counts[p.finish] || 0) + 1; });
+  const colors = { Running: '#10b981', Delayed: '#f59e0b', Stopped: '#ef4444', Completed: '#64748b' };
+
+  const statusCtx = document.getElementById('statusDonut').getContext('2d');
+  if(statusChartInst) statusChartInst.destroy();
+  statusChartInst = new Chart(statusCtx, {
+    type: 'doughnut',
+    data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts), backgroundColor: Object.keys(counts).map(k => colors[k]), borderWidth: 0 }] },
+    options: { cutout: '75%', plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false }
+  });
+
+  document.getElementById('statusLegend').innerHTML = Object.keys(counts).map(k => `
+    <div class="legend-row">
+      <span class="lbl"><span class="sw" style="background:${colors[k]}"></span>${k}</span>
+      <span class="num">${counts[k]}</span>
+    </div>`).join('');
+
+  let totalPct = 0;
+  list.forEach(p => {
+    const idx = lists.processes.indexOf(p.currentStage);
+    const progress = idx >= 0 ? ((idx + 1) / lists.processes.length) * 100 : 0;
+    totalPct += progress;
+  });
+  const avgPct = list.length ? Math.round(totalPct / list.length) : 0;
+  document.getElementById('gaugeNum').textContent = avgPct + '%';
+
+  const gaugeCtx = document.getElementById('completionGauge').getContext('2d');
+  if(gaugeChartInst) gaugeChartInst.destroy();
+  gaugeChartInst = new Chart(gaugeCtx, {
+    type: 'doughnut',
+    data: { datasets: [{ data: [avgPct, 100 - avgPct], backgroundColor: ['#3b82f6', '#e2e8f0'], borderWidth: 0 }] },
+    options: { cutout: '78%', circumference: 360, rotation: 0, plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false }
+  });
+
+  const totalQty = list.reduce((sum, p) => sum + (Number(p.qty) || 0), 0);
+  const totalVal = list.reduce((sum, p) => sum + (Number(p.valueLacs) || 0), 0);
+  document.getElementById('miniTotalQty').textContent = totalQty.toLocaleString();
+  document.getElementById('miniTotalValue').textContent = totalVal.toFixed(2);
+}
+
+function escapeHtml(s){
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderSettingsLists(){
+  renderListBlock('customers', 'listCustomers');
+  renderListBlock('processes', 'listProcesses');
+  populateDropdown('f_customer', lists.customers, 'Select Customer');
+  populateDropdown('f_currentStage', lists.processes, 'Select Stage');
+}
+
+function renderListBlock(key, elId){
+  const el = document.getElementById(elId);
+  el.innerHTML = '';
+  (lists[key] || []).forEach((item, idx) => {
+    const row = document.createElement('div');
+    row.className = 'list-item';
+    row.innerHTML = `<span>${escapeHtml(item)}</span><button onclick="removeListItem('${key}', ${idx})">Remove</button>`;
+    el.appendChild(row);
+  });
+}
+
+function addListItem(key, inputId){
+  const input = document.getElementById(inputId);
+  const val = input.value.trim();
+  if(!val) return;
+  lists[key].push(val);
+  input.value = '';
+  saveLists(); renderSettingsLists();
+}
+
+function removeListItem(key, idx){
+  lists[key].splice(idx, 1);
+  saveLists(); renderSettingsLists();
+}
+
+function populateDropdown(elId, items, placeholder){
+  const sel = document.getElementById(elId);
+  const val = sel.value;
+  sel.innerHTML = `<option value="">${placeholder}</option>` + (items || []).map(i => `<option value="${escapeHtml(i)}">${escapeHtml(i)}</option>`).join('');
+  if(val) sel.value = val;
+}
+
+function calculateValue(){
+  const q = parseFloat(document.getElementById('f_qty').value) || 0;
+  const r = parseFloat(document.getElementById('f_setRate').value) || 0;
+  if(q && r){
+    document.getElementById('f_value').value = ((q * r) / 100000).toFixed(2);
+  }
+}
+
+function openPartDrawer(id){
+  editingId = id;
+  pendingFiles = { dwg: null, tooling: null };
+  removedFiles = { dwg: false, tooling: false };
+  document.getElementById('drawerTitle').textContent = id ? 'Edit Order Entry' : 'New Order Entry';
+  renderSettingsLists();
+
+  const p = id ? parts[id] : null;
+  document.getElementById('f_month').value = p ? p.month || '' : '';
+  document.getElementById('f_customer').value = p ? p.customer || '' : '';
+  document.getElementById('f_jonNo').value = p ? p.jonNo || '' : '';
+  document.getElementById('f_jonDate').value = p ? p.jonDate || '' : '';
+  document.getElementById('f_poNum').value = p ? p.poNum || '' : '';
+  document.getElementById('f_poDate').value = p ? p.poDate || '' : '';
+  document.getElementById('f_dueDate').value = p ? p.dueDate || '' : '';
+  document.getElementById('f_drawingNo').value = p ? p.drawingNo || '' : '';
+  document.getElementById('f_currentStage').value = p ? p.currentStage || '' : (lists.processes[0] || '');
+  document.getElementById('f_toolingStage').value = p ? p.toolingStage || '' : '';
+  document.getElementById('f_qty').value = p ? p.qty || '' : '';
+  document.getElementById('f_setRate').value = p ? p.setRate || '' : '';
+  document.getElementById('f_value').value = p ? p.valueLacs || '' : '';
+  document.getElementById('f_finish').value = p ? p.finish || 'Running' : 'Running';
+
+  renderFileSlot('dwg', p);
+  renderFileSlot('tooling', p);
+
+  document.getElementById('drawerOverlay').classList.add('show');
+  document.getElementById('partDrawer').classList.add('show');
+}
+
+function closePartDrawer(){
+  document.getElementById('drawerOverlay').classList.remove('show');
+  document.getElementById('partDrawer').classList.remove('show');
+  editingId = null;
+}
+
+async function savePart(){
+  const jonNo = document.getElementById('f_jonNo').value.trim();
+  if(!jonNo){ showToast('JON No is required'); return; }
+
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.disabled = true; saveBtn.textContent = 'Saving...';
+
+  const id = editingId || uid();
+  const existing = parts[id] || {};
+
+  const partObj = {
+    id,
+    month: document.getElementById('f_month').value,
+    customer: document.getElementById('f_customer').value,
+    jonNo,
+    jonDate: document.getElementById('f_jonDate').value,
+    poNum: document.getElementById('f_poNum').value,
+    poDate: document.getElementById('f_poDate').value,
+    dueDate: document.getElementById('f_dueDate').value,
+    drawingNo: document.getElementById('f_drawingNo').value,
+    currentStage: document.getElementById('f_currentStage').value,
+    toolingStage: document.getElementById('f_toolingStage').value,
+    qty: document.getElementById('f_qty').value,
+    setRate: document.getElementById('f_setRate').value,
+    valueLacs: document.getElementById('f_value').value,
+    finish: document.getElementById('f_finish').value,
+    dwgFileName: existing.dwgFileName || null,
+    dwgFilePath: existing.dwgFilePath || null,
+    toolingFileName: existing.toolingFileName || null,
+    toolingFilePath: existing.toolingFilePath || null
+  };
+
+  try {
+    if(pendingFiles.dwg){
+      if(existing.dwgFilePath) await deleteFileAtPath(existing.dwgFilePath);
+      const path = await uploadFile(id, 'dwg', pendingFiles.dwg);
+      if(path){ partObj.dwgFilePath = path; partObj.dwgFileName = pendingFiles.dwg.name; }
+    } else if(removedFiles.dwg){
+      if(existing.dwgFilePath) await deleteFileAtPath(existing.dwgFilePath);
+      partObj.dwgFilePath = null; partObj.dwgFileName = null;
+    }
+
+    if(pendingFiles.tooling){
+      if(existing.toolingFilePath) await deleteFileAtPath(existing.toolingFilePath);
+      const path = await uploadFile(id, 'tooling', pendingFiles.tooling);
+      if(path){ partObj.toolingFilePath = path; partObj.toolingFileName = pendingFiles.tooling.name; }
+    } else if(removedFiles.tooling){
+      if(existing.toolingFilePath) await deleteFileAtPath(existing.toolingFilePath);
+      partObj.toolingFilePath = null; partObj.toolingFileName = null;
+    }
+
+    if(sb){
+      const { error } = await sb.from('production_orders').upsert(partToRow(partObj));
+      if(error){ showToast('Save error: ' + error.message); return; }
+    }
+
+    parts[id] = partObj;
+    closePartDrawer(); renderAll(); showToast('Record saved successfully');
+  } finally {
+    saveBtn.disabled = false; saveBtn.textContent = 'Save Entry';
+  }
+}
+
+async function deletePart(id){
+  if(!confirm('Delete this record?')) return;
+  const p = parts[id];
+  if(sb){
+    await sb.from('production_orders').delete().eq('id', id);
+    if(p?.dwgFilePath) await deleteFileAtPath(p.dwgFilePath);
+    if(p?.toolingFilePath) await deleteFileAtPath(p.toolingFilePath);
+  }
+  delete parts[id]; renderAll(); showToast('Deleted');
+}
+
+/* ===================== EXCEL EXPORT & IMPORT ===================== */
+const EXCEL_MAPPING = [
+  'Month', 'JON no', 'JON Date', 'PO NUM', 'PO Date', 'DUE Date', 
+  'Customer', 'Drawingno', 'Finish', 'Qty', 'Current stage', 'Tooling Stage', 
+  'Set Rate', 'Value (Rs. Lacs)'
+];
+
+function exportToExcel(){
+  const list = Object.values(parts);
+  if(!list.length){ showToast('No data to export'); return; }
+
+  const rows = list.map(p => ({
+    'Month': p.month || '',
+    'JON no': p.jonNo || '',
+    'JON Date': p.jonDate || '',
+    'PO NUM': p.poNum || '',
+    'PO Date': p.poDate || '',
+    'DUE Date': p.dueDate || '',
+    'Customer': p.customer || '',
+    'Drawingno': p.drawingNo || '',
+    'Finish': p.finish || 'Running',
+    'Qty': p.qty || 0,
+    'Current stage': p.currentStage || '',
+    'Tooling Stage': p.toolingStage || '',
+    'Set Rate': p.setRate || 0,
+    'Value (Rs. Lacs)': p.valueLacs || 0
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows, { header: EXCEL_MAPPING });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Production Orders');
+  XLSX.writeFile(wb, `Production_Tracker_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+function handleImportFile(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+      let imported = 0;
+      for(const row of rows){
+        const id = uid();
+        const obj = {
+          id,
+          month: row['Month'] || row['month'] || '',
+          jonNo: String(row['JON no'] || row['jon no'] || row['JON NO'] || id),
+          jonDate: row['JON Date'] || '',
+          poNum: String(row['PO NUM'] || row['po num'] || ''),
+          poDate: row['PO Date'] || '',
+          dueDate: row['DUE Date'] || '',
+          customer: row['Customer'] || '',
+          drawingNo: String(row['Drawingno'] || row['drawingno'] || row['Drawing No'] || ''),
+          finish: row['Finish'] || 'Running',
+          qty: row['Qty'] || 0,
+          currentStage: row['Current stage'] || lists.processes[0],
+          toolingStage: row['Tooling Stage'] || '',
+          setRate: row['Set Rate'] || 0,
+          valueLacs: row['Value (Rs. Lacs)'] || 0
+        };
+
+        if(sb) await sb.from('production_orders').upsert(partToRow(obj));
+        parts[id] = obj; imported++;
+      }
+      renderAll(); showToast(`Imported ${imported} records successfully`);
+    } catch(err) {
+      console.error(err); showToast('Error parsing Excel file');
+    }
+    evt.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function openDetail(id){
+  detailId = id;
+  const p = parts[id];
+  if(!p) return;
+
+  document.getElementById('detailTitle').textContent = `JON: ${p.jonNo || '—'}`;
+  document.getElementById('detailSub').textContent = `Customer: ${p.customer || 'Unassigned'} | DWG: ${p.drawingNo || '—'}`;
+  document.getElementById('detailQty').textContent = `${p.qty || 0} pcs`;
+  document.getElementById('detailSetRate').textContent = `Rs. ${p.setRate || 0}`;
+  document.getElementById('detailValue').textContent = `Rs. ${p.valueLacs || '0.00'}`;
+  document.getElementById('detailJonDate').textContent = p.jonDate || '—';
+  document.getElementById('detailPoDetails').textContent = `${p.poNum || '—'} (${p.poDate || '—'})`;
+  document.getElementById('detailDueDate').textContent = p.dueDate || '—';
+  document.getElementById('detailToolingStage').textContent = p.toolingStage || '—';
+  document.getElementById('detailStatusPill').innerHTML = `<span class="pill ${statusClass(p.finish)}"><span class="dot"></span>${p.finish}</span>`;
+
+  const stagesWrap = document.getElementById('detailStages');
+  stagesWrap.innerHTML = '';
+  const activeIdx = lists.processes.indexOf(p.currentStage);
+
+  lists.processes.forEach((stage, i) => {
+    if(i > 0){
+      const arrow = document.createElement('div');
+      arrow.className = 'stage-arrow'; arrow.textContent = '↓';
+      stagesWrap.appendChild(arrow);
+    }
+    const isCurrent = i === activeIdx;
+    const isDone = i < activeIdx;
+    const div = document.createElement('div');
+    div.className = 'stage-badge' + (isCurrent ? ' current' : '');
+    div.innerHTML = `
+      <span style="font-weight:700;">${i+1}. ${escapeHtml(stage)}</span>
+      <span class="pill ${isDone ? 'completed' : (isCurrent ? statusClass(p.finish) : 'completed')}">
+        <span class="dot"></span>${isDone ? 'Done' : (isCurrent ? p.finish : 'Pending')}
+      </span>
+    `;
+    stagesWrap.appendChild(div);
+  });
+
+  const filesWrap = document.getElementById('detailFiles');
+  filesWrap.innerHTML = '';
+  if(p.dwgFileName){
+    filesWrap.innerHTML += `<div class="file-link" onclick="downloadPartFile('${p.dwgFilePath}','${escapeHtml(p.dwgFileName)}')">📄 DWG: ${escapeHtml(p.dwgFileName)}</div>`;
+  }
+  if(p.toolingFileName){
+    filesWrap.innerHTML += `<div class="file-link" onclick="downloadPartFile('${p.toolingFilePath}','${escapeHtml(p.toolingFileName)}')">🛠 Tooling DWG: ${escapeHtml(p.toolingFileName)}</div>`;
+  }
+  if(!p.dwgFileName && !p.toolingFileName){
+    filesWrap.innerHTML = '<div class="part-sub">No drawings attached</div>';
+  }
+
+  document.getElementById('detailOverlay').classList.add('show');
+}
+
+function closeDetail(){
+  document.getElementById('detailOverlay').classList.remove('show');
+  detailId = null;
+}
+
+function editFromDetail(){
+  const id = detailId; closeDetail(); openPartDrawer(id);
+}
+
+/* ===================== INIT ===================== */
+(async function start(){
+  const ok = initSupabase();
+  if(ok){
+    await loadParts();
+    await loadLists();
+  }
+  renderAll();
+})();
+</script>
+</body>
+</html>
