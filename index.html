@@ -41,7 +41,7 @@
 
   .app { display: flex; min-height: 100vh; padding: 16px; gap: 16px; }
 
-  /* Orbit Sidebar */
+  /* Sidebar */
   .sidebar {
     width: 80px; flex-shrink: 0; background: var(--card-bg); border-radius: var(--radius-xl);
     display: flex; flex-direction: column; align-items: center; padding: 24px 12px;
@@ -100,7 +100,7 @@
   .btn-secondary { background: var(--pill-light); color: var(--text); }
   .btn-secondary:hover { background: #e2e8f0; }
 
-  /* Dashboard Cards */
+  /* Cards Grid */
   .content { display: flex; flex-direction: column; gap: 16px; }
   .page { display: none; }
   .page.active { display: flex; flex-direction: column; gap: 16px; }
@@ -201,7 +201,7 @@
   .divider { border: none; border-top: 1px solid var(--line); margin: 24px 0; }
   .section-title { font-size: 12px; font-weight: 800; color: var(--text-muted); margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.6px; }
 
-  /* File Slot Upload */
+  /* File Slots */
   .file-slot { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 10px 14px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #fafafa; }
   .file-slot-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; font-weight: 600; }
   .file-slot-actions button { background: none; border: none; font-size: 12px; color: var(--blue); font-weight: 700; cursor: pointer; }
@@ -642,11 +642,11 @@ function setConnStatus(kind){
   document.getElementById('connDot').className = 'conn-dot ' + (kind || '');
 }
 
-/* ===================== DATE PARSER HELPER ===================== */
+/* ===================== PARSERS & HELPERS ===================== */
 function formatExcelDate(val) {
   if (val === undefined || val === null || val === '') return '';
   const num = Number(val);
-  // Convert raw Excel serial number (e.g., 46234) to DD/MM/YYYY
+  // Convert Excel Serial Number (e.g. 46234) into DD/MM/YYYY format
   if (!isNaN(num) && num > 25000 && num < 60000) {
     const jsDate = new Date(Math.round((num - 25569) * 86400 * 1000));
     const day = String(jsDate.getUTCDate()).padStart(2, '0');
@@ -655,6 +655,14 @@ function formatExcelDate(val) {
     return `${day}/${month}/${year}`;
   }
   return String(val).trim();
+}
+
+function parseNum(val) {
+  if (val === undefined || val === null || val === '') return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  const cleaned = String(val).replace(/[^0-9.-]/g, '');
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? 0 : n;
 }
 
 /* ===================== DATA MAPPING ===================== */
@@ -671,11 +679,11 @@ function rowToPart(r){
     drawingNo: r.drawing_no, 
     finishProcess: r.finish_process || r.finish || '', 
     status: r.status || 'Running',                     
-    qty: r.qty, 
+    qty: parseNum(r.qty), 
     currentStage: r.current_stage || lists.processes[0], 
     toolingStage: r.tooling_stage,
-    setRate: r.set_rate, 
-    valueLacs: r.value_lacs,
+    setRate: parseNum(r.set_rate), 
+    valueLacs: parseNum(r.value_lacs),
     dwgFileName: r.dwg_file_name, 
     dwgFilePath: r.dwg_file_path,
     toolingFileName: r.tooling_file_name, 
@@ -698,11 +706,11 @@ function partToRow(p){
     finish: p.finishProcess || null,                    
     finish_process: p.finishProcess || null,            
     status: p.status || 'Running',                       
-    qty: p.qty === '' ? null : p.qty, 
+    qty: parseNum(p.qty), 
     current_stage: p.currentStage || null,
     tooling_stage: p.toolingStage || null, 
-    set_rate: p.setRate === '' ? null : p.setRate,
-    value_lacs: p.valueLacs === '' ? null : p.valueLacs,
+    set_rate: parseNum(p.setRate), 
+    value_lacs: parseNum(p.valueLacs),
     dwg_file_name: p.dwgFileName || null, 
     dwg_file_path: p.dwgFilePath || null,
     tooling_file_name: p.toolingFileName || null, 
@@ -925,13 +933,17 @@ function renderCharts(){
         <span class="num">${counts[k]}</span>
       </div>`).join('');
 
-    // 2. Average Progress Gauge
+    // 2. Average Progress Gauge (Robust Case-Insensitive Matching)
     let totalPct = 0;
+    const lowerProcesses = lists.processes.map(p => p.toLowerCase().trim());
+
     list.forEach(p => {
-      const idx = lists.processes.indexOf(p.currentStage);
+      const stageName = (p.currentStage || '').toLowerCase().trim();
+      const idx = lowerProcesses.indexOf(stageName);
       const progress = idx >= 0 ? ((idx + 1) / lists.processes.length) * 100 : 0;
       totalPct += progress;
     });
+    
     const avgPct = list.length ? Math.round(totalPct / list.length) : 0;
     document.getElementById('gaugeNum').textContent = avgPct + '%';
 
@@ -946,9 +958,10 @@ function renderCharts(){
       });
     }
 
-    // 3. Mini Stat Counters
-    const totalQty = list.reduce((sum, p) => sum + (Number(p.qty) || 0), 0);
-    const totalVal = list.reduce((sum, p) => sum + (Number(p.valueLacs) || 0), 0);
+    // 3. Robust Total Numeric Metrics Calculation
+    const totalQty = list.reduce((sum, p) => sum + parseNum(p.qty), 0);
+    const totalVal = list.reduce((sum, p) => sum + parseNum(p.valueLacs), 0);
+    
     document.getElementById('miniTotalQty').textContent = totalQty.toLocaleString();
     document.getElementById('miniTotalValue').textContent = totalVal.toFixed(2);
   });
@@ -998,8 +1011,8 @@ function populateDropdown(elId, items, placeholder){
 }
 
 function calculateValue(){
-  const q = parseFloat(document.getElementById('f_qty').value) || 0;
-  const r = parseFloat(document.getElementById('f_setRate').value) || 0;
+  const q = parseNum(document.getElementById('f_qty').value);
+  const r = parseNum(document.getElementById('f_setRate').value);
   if(q && r){
     document.getElementById('f_value').value = ((q * r) / 100000).toFixed(2);
   }
@@ -1065,9 +1078,9 @@ async function savePart(){
     currentStage: document.getElementById('f_currentStage').value,
     finishProcess: document.getElementById('f_finishProcess').value,
     toolingStage: document.getElementById('f_toolingStage').value,
-    qty: document.getElementById('f_qty').value,
-    setRate: document.getElementById('f_setRate').value,
-    valueLacs: document.getElementById('f_value').value,
+    qty: parseNum(document.getElementById('f_qty').value),
+    setRate: parseNum(document.getElementById('f_setRate').value),
+    valueLacs: parseNum(document.getElementById('f_value').value),
     status: document.getElementById('f_status').value,
     dwgFileName: existing.dwgFileName || null,
     dwgFilePath: existing.dwgFilePath || null,
@@ -1179,11 +1192,11 @@ function handleImportFile(evt){
           drawingNo: String(row['Drawingno'] || row['drawingno'] || row['Drawing No'] || ''),
           finishProcess: String(row['Finish'] || row['finish'] || ''),
           status: 'Running',
-          qty: row['Qty'] || 0,
-          currentStage: row['Current stage'] || lists.processes[0],
-          toolingStage: row['Tooling Stage'] || '',
-          setRate: row['Set Rate'] || 0,
-          valueLacs: row['Value (Rs. Lacs)'] || 0
+          qty: parseNum(row['Qty'] || row['qty']),
+          currentStage: row['Current stage'] || row['current stage'] || lists.processes[0],
+          toolingStage: row['Tooling Stage'] || row['tooling stage'] || '',
+          setRate: parseNum(row['Set Rate'] || row['set rate']),
+          valueLacs: parseNum(row['Value (Rs. Lacs)'] || row['value (rs. lacs)'])
         };
 
         if(sb) await sb.from('production_orders').upsert(partToRow(obj));
@@ -1220,7 +1233,8 @@ function openDetail(id){
 
   const stagesWrap = document.getElementById('detailStages');
   stagesWrap.innerHTML = '';
-  const activeIdx = lists.processes.indexOf(p.currentStage);
+  const lowerProcesses = lists.processes.map(pr => pr.toLowerCase().trim());
+  const activeIdx = lowerProcesses.indexOf((p.currentStage || '').toLowerCase().trim());
 
   lists.processes.forEach((stage, i) => {
     if(i > 0){
