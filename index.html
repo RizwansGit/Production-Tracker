@@ -15,7 +15,6 @@
     --bg-main: #eef2f6;
     --card-bg: #ffffff;
     --navy: #0f172a;
-    --pill-dark: #1e293b;
     --pill-light: #f1f5f9;
     --blue: #3b82f6;
     --blue-soft: #eff6ff;
@@ -70,7 +69,7 @@
   /* Main Layout */
   .main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 
-  /* Top Bar Controls */
+  /* Top Bar */
   .topbar {
     background: var(--card-bg); border-radius: var(--radius-xl); padding: 12px 24px;
     display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -193,7 +192,7 @@
 
   .field { margin-bottom: 16px; }
   .field label { display: block; font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-  .field input[type=text], .field input[type=number], .field input[type=date], .field select, .field textarea {
+  .field input[type=text], .field input[type=number], .field select, .field textarea {
     width: 100%; padding: 10px 14px; border: 1px solid var(--line); border-radius: var(--radius-md); font-size: 13.5px; background: #fff; color: var(--text);
   }
   .field input:focus, .field select:focus { outline: none; border-color: var(--blue); }
@@ -449,7 +448,7 @@
       </div>
       <div class="field">
         <label>JON Date</label>
-        <input type="text" id="f_jonDate" placeholder="DD/MM/YYYY or DD-MM-YYYY">
+        <input type="text" id="f_jonDate" placeholder="DD/MM/YYYY">
       </div>
     </div>
 
@@ -643,20 +642,35 @@ function setConnStatus(kind){
   document.getElementById('connDot').className = 'conn-dot ' + (kind || '');
 }
 
-/* ===================== DATA MAPPING (SEPARATING FINISH & STATUS) ===================== */
+/* ===================== DATE PARSER HELPER ===================== */
+function formatExcelDate(val) {
+  if (val === undefined || val === null || val === '') return '';
+  const num = Number(val);
+  // Convert raw Excel serial number (e.g., 46234) to DD/MM/YYYY
+  if (!isNaN(num) && num > 25000 && num < 60000) {
+    const jsDate = new Date(Math.round((num - 25569) * 86400 * 1000));
+    const day = String(jsDate.getUTCDate()).padStart(2, '0');
+    const month = String(jsDate.getUTCMonth() + 1).padStart(2, '0');
+    const year = jsDate.getUTCFullYear();
+    return `${day}/${month}/${year}`;
+  }
+  return String(val).trim();
+}
+
+/* ===================== DATA MAPPING ===================== */
 function rowToPart(r){
   return {
     id: r.id, 
     month: r.month, 
     jonNo: r.jon_no, 
-    jonDate: r.jon_date, 
+    jonDate: formatExcelDate(r.jon_date), 
     poNum: r.po_num, 
-    poDate: r.po_date,
-    dueDate: r.due_date, 
+    poDate: formatExcelDate(r.po_date),
+    dueDate: formatExcelDate(r.due_date), 
     customer: r.customer, 
     drawingNo: r.drawing_no, 
-    finishProcess: r.finish_process || r.finish || '', // Component teeth finish[cite: 1]
-    status: r.status || 'Running',                     // Operational status[cite: 1]
+    finishProcess: r.finish_process || r.finish || '', 
+    status: r.status || 'Running',                     
     qty: r.qty, 
     currentStage: r.current_stage || lists.processes[0], 
     toolingStage: r.tooling_stage,
@@ -681,9 +695,9 @@ function partToRow(p){
     due_date: p.dueDate || null,
     customer: p.customer || null, 
     drawing_no: p.drawingNo || null, 
-    finish: p.finishProcess || null,                    // Component finish[cite: 1]
-    finish_process: p.finishProcess || null,            // Component finish[cite: 1]
-    status: p.status || 'Running',                       // Operational status[cite: 1]
+    finish: p.finishProcess || null,                    
+    finish_process: p.finishProcess || null,            
+    status: p.status || 'Running',                       
     qty: p.qty === '' ? null : p.qty, 
     current_stage: p.currentStage || null,
     tooling_stage: p.toolingStage || null, 
@@ -803,6 +817,7 @@ function goToPage(page){
   document.getElementById('page-' + page).classList.add('active');
   document.querySelectorAll('.top-pill').forEach((n, i) => n.classList.toggle('active', (i===0 && page==='dashboard') || (i===1 && page==='settings')));
   if(page==='settings') renderSettingsLists();
+  if(page==='dashboard') renderCharts();
 }
 
 async function refreshAll(){
@@ -811,7 +826,9 @@ async function refreshAll(){
 }
 
 function renderAll(){
-  renderTable(); renderCharts(); renderSettingsLists();
+  renderTable(); 
+  renderCharts(); 
+  renderSettingsLists();
 }
 
 function statusClass(status){
@@ -879,46 +896,62 @@ function renderTable(){
 
 function renderCharts(){
   if(typeof Chart === 'undefined') return;
-  const list = Object.values(parts);
-  const counts = { Running: 0, Delayed: 0, Stopped: 0, Completed: 0 };
-  list.forEach(p => { counts[p.status] = (counts[p.status] || 0) + 1; });
-  const colors = { Running: '#10b981', Delayed: '#f59e0b', Stopped: '#ef4444', Completed: '#64748b' };
 
-  const statusCtx = document.getElementById('statusDonut').getContext('2d');
-  if(statusChartInst) statusChartInst.destroy();
-  statusChartInst = new Chart(statusCtx, {
-    type: 'doughnut',
-    data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts), backgroundColor: Object.keys(counts).map(k => colors[k]), borderWidth: 0 }] },
-    options: { cutout: '75%', plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false }
+  requestAnimationFrame(() => {
+    const list = Object.values(parts);
+
+    // 1. Status Donut Chart
+    const counts = { Running: 0, Delayed: 0, Stopped: 0, Completed: 0 };
+    list.forEach(p => { 
+      const st = p.status || 'Running';
+      counts[st] = (counts[st] || 0) + 1; 
+    });
+    const colors = { Running: '#10b981', Delayed: '#f59e0b', Stopped: '#ef4444', Completed: '#64748b' };
+
+    const statusCanvas = document.getElementById('statusDonut');
+    if(statusCanvas) {
+      const statusCtx = statusCanvas.getContext('2d');
+      if(statusChartInst) statusChartInst.destroy();
+      statusChartInst = new Chart(statusCtx, {
+        type: 'doughnut',
+        data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts), backgroundColor: Object.keys(counts).map(k => colors[k]), borderWidth: 0 }] },
+        options: { cutout: '75%', plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    document.getElementById('statusLegend').innerHTML = Object.keys(counts).map(k => `
+      <div class="legend-row">
+        <span class="lbl"><span class="sw" style="background:${colors[k]}"></span>${k}</span>
+        <span class="num">${counts[k]}</span>
+      </div>`).join('');
+
+    // 2. Average Progress Gauge
+    let totalPct = 0;
+    list.forEach(p => {
+      const idx = lists.processes.indexOf(p.currentStage);
+      const progress = idx >= 0 ? ((idx + 1) / lists.processes.length) * 100 : 0;
+      totalPct += progress;
+    });
+    const avgPct = list.length ? Math.round(totalPct / list.length) : 0;
+    document.getElementById('gaugeNum').textContent = avgPct + '%';
+
+    const gaugeCanvas = document.getElementById('completionGauge');
+    if(gaugeCanvas) {
+      const gaugeCtx = gaugeCanvas.getContext('2d');
+      if(gaugeChartInst) gaugeChartInst.destroy();
+      gaugeChartInst = new Chart(gaugeCtx, {
+        type: 'doughnut',
+        data: { datasets: [{ data: [avgPct, Math.max(0, 100 - avgPct)], backgroundColor: ['#3b82f6', '#e2e8f0'], borderWidth: 0 }] },
+        options: { cutout: '78%', circumference: 360, rotation: 0, plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    // 3. Mini Stat Counters
+    const totalQty = list.reduce((sum, p) => sum + (Number(p.qty) || 0), 0);
+    const totalVal = list.reduce((sum, p) => sum + (Number(p.valueLacs) || 0), 0);
+    document.getElementById('miniTotalQty').textContent = totalQty.toLocaleString();
+    document.getElementById('miniTotalValue').textContent = totalVal.toFixed(2);
   });
-
-  document.getElementById('statusLegend').innerHTML = Object.keys(counts).map(k => `
-    <div class="legend-row">
-      <span class="lbl"><span class="sw" style="background:${colors[k]}"></span>${k}</span>
-      <span class="num">${counts[k]}</span>
-    </div>`).join('');
-
-  let totalPct = 0;
-  list.forEach(p => {
-    const idx = lists.processes.indexOf(p.currentStage);
-    const progress = idx >= 0 ? ((idx + 1) / lists.processes.length) * 100 : 0;
-    totalPct += progress;
-  });
-  const avgPct = list.length ? Math.round(totalPct / list.length) : 0;
-  document.getElementById('gaugeNum').textContent = avgPct + '%';
-
-  const gaugeCtx = document.getElementById('completionGauge').getContext('2d');
-  if(gaugeChartInst) gaugeChartInst.destroy();
-  gaugeChartInst = new Chart(gaugeCtx, {
-    type: 'doughnut',
-    data: { datasets: [{ data: [avgPct, 100 - avgPct], backgroundColor: ['#3b82f6', '#e2e8f0'], borderWidth: 0 }] },
-    options: { cutout: '78%', circumference: 360, rotation: 0, plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false }
-  });
-
-  const totalQty = list.reduce((sum, p) => sum + (Number(p.qty) || 0), 0);
-  const totalVal = list.reduce((sum, p) => sum + (Number(p.valueLacs) || 0), 0);
-  document.getElementById('miniTotalQty').textContent = totalQty.toLocaleString();
-  document.getElementById('miniTotalValue').textContent = totalVal.toFixed(2);
 }
 
 function escapeHtml(s){
@@ -1084,7 +1117,7 @@ async function deletePart(id){
   delete parts[id]; renderAll(); showToast('Deleted');
 }
 
-/* ===================== EXCEL EXPORT & IMPORT (PRESERVES EXACT DATES) ===================== */
+/* ===================== EXCEL EXPORT & IMPORT ===================== */
 const EXCEL_MAPPING = [
   'Month', 'JON no', 'JON Date', 'PO NUM', 'PO Date', 'DUE Date', 
   'Customer', 'Drawingno', 'Finish', 'Qty', 'Current stage', 'Tooling Stage', 
@@ -1126,11 +1159,10 @@ function handleImportFile(evt){
   reader.onload = async (e) => {
     try {
       const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data, { type: 'array', cellDates: true });
+      const wb = XLSX.read(data, { type: 'array' });
       const sheet = wb.Sheets[wb.SheetNames[0]];
       
-      // raw: false forces formatted string output matching Excel date formats
-      const rows = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: true });
 
       let imported = 0;
       for(const row of rows){
@@ -1139,14 +1171,14 @@ function handleImportFile(evt){
           id,
           month: String(row['Month'] || row['month'] || ''),
           jonNo: String(row['JON no'] || row['jon no'] || row['JON NO'] || id),
-          jonDate: String(row['JON Date'] || row['jon date'] || ''),
+          jonDate: formatExcelDate(row['JON Date'] || row['jon date']),
           poNum: String(row['PO NUM'] || row['po num'] || ''),
-          poDate: String(row['PO Date'] || row['po date'] || ''),
-          dueDate: String(row['DUE Date'] || row['due date'] || ''),
+          poDate: formatExcelDate(row['PO Date'] || row['po date']),
+          dueDate: formatExcelDate(row['DUE Date'] || row['due date']),
           customer: String(row['Customer'] || row['customer'] || ''),
           drawingNo: String(row['Drawingno'] || row['drawingno'] || row['Drawing No'] || ''),
-          finishProcess: String(row['Finish'] || row['finish'] || ''), // Component finish
-          status: 'Running',                                           // Operational status default
+          finishProcess: String(row['Finish'] || row['finish'] || ''),
+          status: 'Running',
           qty: row['Qty'] || 0,
           currentStage: row['Current stage'] || lists.processes[0],
           toolingStage: row['Tooling Stage'] || '',
@@ -1155,11 +1187,14 @@ function handleImportFile(evt){
         };
 
         if(sb) await sb.from('production_orders').upsert(partToRow(obj));
-        parts[id] = obj; imported++;
+        parts[id] = obj; 
+        imported++;
       }
-      renderAll(); showToast(`Imported ${imported} records successfully`);
+      renderAll(); 
+      showToast(`Imported ${imported} records successfully`);
     } catch(err) {
-      console.error(err); showToast('Error parsing Excel file');
+      console.error(err); 
+      showToast('Error parsing Excel file');
     }
     evt.target.value = '';
   };
@@ -1230,7 +1265,7 @@ function editFromDetail(){
   const id = detailId; closeDetail(); openPartDrawer(id);
 }
 
-/* ===================== INIT ===================== */
+/* ===================== INITIALIZATION ===================== */
 (async function start(){
   const ok = initSupabase();
   if(ok){
