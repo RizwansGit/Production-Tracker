@@ -56,7 +56,7 @@
   .btn-blue{background:var(--blue);color:#fff;} .btn-blue:hover{background:#1d4fd1;}
   .btn-sm{padding:6px 10px;font-size:12.5px;}
   .btn:disabled{opacity:.5;cursor:not-allowed;}
-  .content{padding:22px 24px 60px;max-width:1200px;width:100%;margin:0 auto;}
+  .content{padding:22px 24px 60px;max-width:1240px;width:100%;margin:0 auto;}
 
   .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;}
   .stat-card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;}
@@ -102,6 +102,7 @@
   .progress-fill{height:100%;background:var(--blue);}
   .empty-state{padding:60px 20px;text-align:center;color:var(--text-dim);}
   .empty-state h4{color:var(--text);margin-bottom:6px;}
+  .comp-chip{display:inline-block;background:var(--gray-bg);border:1px solid var(--line);border-radius:999px;padding:1px 8px;font-size:10.5px;color:var(--text-dim);margin-left:4px;}
 
   .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;flex-shrink:0;}
   .pill .dot{width:6px;height:6px;border-radius:50%;}
@@ -111,7 +112,6 @@
   .pill.completed{background:#eef0f4;color:#4b5468;} .pill.completed .dot{background:#4b5468;}
   .overdue-badge{display:inline-block;background:var(--red-bg);color:var(--red);font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:999px;margin-left:6px;}
 
-  /* ===== Project workspace ===== */
   .breadcrumb{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-dim);margin-bottom:14px;cursor:pointer;}
   .breadcrumb:hover{color:var(--text);}
   .workspace-header{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);margin-bottom:16px;}
@@ -120,18 +120,28 @@
   .workspace-title-row .ws-sub{font-size:12.5px;color:var(--text-dim);margin-top:3px;}
   .ws-actions{display:flex;gap:8px;flex-wrap:wrap;}
   .field-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 14px;}
-  .field{}
   .field label{display:block;font-size:11.5px;font-weight:600;color:var(--text-dim);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px;}
   .field input[type=text],.field input[type=number],.field select,.field textarea{
     width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-size:13.5px;background:var(--white);color:var(--text);
   }
   .field textarea{resize:vertical;min-height:50px;}
 
-  .banner-stage{display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap;}
-  .stage-banner-card{flex:1;min-width:200px;background:linear-gradient(135deg,var(--navy),var(--navy-3));color:#fff;border-radius:var(--radius);padding:16px 20px;}
+  /* Component tabs */
+  .comp-tabs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+  .comp-tab{padding:8px 16px;border-radius:8px 8px 0 0;font-size:13.5px;font-weight:600;border:1px solid var(--line);border-bottom:none;background:var(--gray-bg);color:var(--text-dim);cursor:pointer;}
+  .comp-tab.active{background:var(--white);color:var(--text);border-color:var(--blue);position:relative;top:1px;}
+  .comp-tab-add{padding:8px 14px;border-radius:8px;border:1px dashed var(--line);background:none;color:var(--text-dim);font-size:13px;}
+  .comp-tab-add:hover{border-color:var(--blue);color:var(--blue);}
+
+  .comp-panel{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);border-top-left-radius:0;padding:20px 22px;box-shadow:var(--shadow);margin-bottom:16px;}
+  .comp-panel-top{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px;}
+  .comp-name-field{flex:1;min-width:180px;}
+
+  .banner-stage{display:flex;gap:14px;margin:16px 0;flex-wrap:wrap;}
+  .stage-banner-card{flex:1;min-width:180px;background:linear-gradient(135deg,var(--navy),var(--navy-3));color:#fff;border-radius:var(--radius);padding:14px 18px;}
   .stage-banner-card .sb-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#93a0bd;margin-bottom:4px;}
-  .stage-banner-card .sb-value{font-size:18px;font-weight:700;}
-  .stage-banner-card.next{background:var(--white);color:var(--text);border:1px solid var(--line);}
+  .stage-banner-card .sb-value{font-size:17px;font-weight:700;}
+  .stage-banner-card.next{background:var(--gray-bg);color:var(--text);border:1px solid var(--line);}
   .stage-banner-card.next .sb-label{color:var(--text-dim);}
 
   .file-slot{border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--gray-bg);}
@@ -141,10 +151,7 @@
   .hidden-file-input{display:none;}
   .upload-btn{background:var(--gray-bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);width:100%;text-align:center;}
 
-  .steps-card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:16px;}
-  .steps-card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line);}
-  .steps-card-header h3{margin:0;font-size:15px;}
-  .steps-table-wrap{overflow-x:auto;}
+  .steps-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;}
   table.steps-table{width:100%;border-collapse:collapse;font-size:13px;}
   table.steps-table thead th{text-align:left;font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.3px;padding:9px 10px;border-bottom:1px solid var(--line);background:#fafbfc;white-space:nowrap;}
   table.steps-table tbody td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
@@ -159,7 +166,7 @@
   .step-actions button.danger:hover{color:var(--red);}
   .current-radio{width:16px;height:16px;cursor:pointer;}
   .done-check{width:16px;height:16px;cursor:pointer;}
-  .add-step-btn{background:none;border:1px dashed var(--line);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--text-dim);width:100%;margin:12px 18px 16px;width:calc(100% - 36px);}
+  .add-step-btn{background:none;border:1px dashed var(--line);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--text-dim);width:100%;margin-top:12px;}
   .add-step-btn:hover{border-color:var(--blue);color:var(--blue);}
 
   .settings-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:760px;}
@@ -173,17 +180,15 @@
   .add-item-row input{flex:1;padding:7px 9px;border:1px solid var(--line);border-radius:6px;font-size:13px;}
   .add-item-row button{background:var(--navy);color:#fff;border:none;border-radius:6px;padding:0 12px;font-size:13px;}
 
-  /* ===== Import modal ===== */
   .modal-overlay{position:fixed;inset:0;background:rgba(15,20,35,.45);z-index:50;display:none;align-items:center;justify-content:center;padding:20px;}
   .modal-overlay.show{display:flex;}
-  .modal-box{background:var(--white);border-radius:14px;max-width:480px;width:100%;padding:22px;}
+  .modal-box{background:var(--white);border-radius:14px;max-width:480px;width:100%;padding:22px;position:relative;}
   .modal-box h3{margin:0 0 4px;font-size:16px;}
   .modal-box .modal-sub{font-size:12.5px;color:var(--text-dim);margin-bottom:16px;}
   .import-preview{background:var(--gray-bg);border-radius:8px;padding:12px 14px;font-size:13px;margin-bottom:16px;line-height:1.7;}
   .import-preview b{color:var(--text);}
   .modal-divider{border:none;border-top:1px solid var(--line);margin:14px 0;}
   .modal-close-x{position:absolute;top:16px;right:18px;background:none;border:none;font-size:18px;color:var(--text-dim);}
-  .modal-box{position:relative;}
 
   .toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:#fff;padding:12px 18px;border-radius:8px;font-size:13.5px;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.2);opacity:0;transform:translateY(8px);transition:all .2s ease;pointer-events:none;max-width:340px;}
   .toast.show{opacity:1;transform:translateY(0);}
@@ -274,7 +279,7 @@
             <div class="donut-wrap"><div class="donut-canvas-box"><canvas id="statusDonut"></canvas></div><div class="donut-legend" id="statusLegend"></div></div>
           </div>
           <div class="chart-card">
-            <h4>Avg Completion</h4><div class="chart-sub">Average progress through route steps</div>
+            <h4>Avg Completion</h4><div class="chart-sub">Average progress across all components</div>
             <div class="gauge-wrap"><canvas id="completionGauge"></canvas><div class="gauge-center"><b id="gaugeNum">0%</b><span>completed</span></div></div>
           </div>
         </div>
@@ -284,7 +289,7 @@
           <div id="projectListBody"></div>
           <div class="empty-state" id="emptyState" style="display:none;">
             <h4>No projects yet</h4>
-            <p>Click "New Project" to start one, or "Import Route Card" to bring in an Excel route sheet like the one you use on the shop floor.</p>
+            <p>Click "New Project" to start one, or "Import Route Card" to bring in an Excel route sheet.</p>
           </div>
         </div>
       </div>
@@ -303,8 +308,7 @@
               <select id="f_status" class="btn-sm" style="border:1px solid var(--line);border-radius:8px;padding:8px 10px;" onchange="onStatusChange()">
                 <option>Running</option><option>Delayed</option><option>Stopped</option><option>Completed</option>
               </select>
-              <button class="btn btn-secondary btn-sm" onclick="exportRouteCard()">Export</button>
-              <button class="btn btn-secondary btn-sm" onclick="deleteCurrentProject()" style="color:var(--red);">Delete</button>
+              <button class="btn btn-secondary btn-sm" onclick="deleteCurrentProject()" style="color:var(--red);">Delete Project</button>
             </div>
           </div>
           <div class="field" id="delayReasonField" style="display:none;margin-bottom:14px;">
@@ -321,52 +325,15 @@
             <div class="field"><label>PO Num</label><input type="text" id="f_poNum" onchange="saveHeaderField('poNum', this.value)"></div>
             <div class="field"><label>PO Date</label><input type="text" id="f_poDate" onchange="saveHeaderField('poDate', this.value)" placeholder="DD-MM-YYYY"></div>
             <div class="field"><label>Due Date</label><input type="text" id="f_dueDate" onchange="saveHeaderField('dueDate', this.value)" placeholder="DD-MM-YYYY"></div>
-            <div class="field"><label>Drawing No</label><input type="text" id="f_drawingNo" onchange="saveHeaderField('drawingNo', this.value)"></div>
-
-            <div class="field"><label>Description</label><input type="text" id="f_description" onchange="saveHeaderField('description', this.value)"></div>
-            <div class="field"><label>Material</label><input type="text" id="f_material" onchange="saveHeaderField('material', this.value)"></div>
-            <div class="field"><label>PSN</label><input type="text" id="f_psn" onchange="saveHeaderField('psn', this.value)"></div>
-            <div class="field"><label>CDN</label><input type="text" id="f_cdn" onchange="saveHeaderField('cdn', this.value)"></div>
-
             <div class="field"><label>Qty</label><input type="number" id="f_qty" onchange="saveHeaderField('qty', this.value)"></div>
+
             <div class="field"><label>Set Rate (₹)</label><input type="number" id="f_setRate" onchange="saveHeaderField('setRate', this.value)"></div>
             <div class="field"><label>Value (Rs. Lacs)</label><input type="number" step="0.01" id="f_valueLacs" onchange="saveHeaderField('valueLacs', this.value)"></div>
-            <div class="field">
-              <label>Drawing File</label>
-              <div id="f_dwgSlot"></div>
-              <input type="file" id="f_dwgInput" class="hidden-file-input" onchange="handleDwgFileSelect(event)">
-            </div>
           </div>
         </div>
 
-        <div class="banner-stage">
-          <div class="stage-banner-card">
-            <div class="sb-label">Current Stage</div>
-            <div class="sb-value" id="bannerCurrent">—</div>
-          </div>
-          <div class="stage-banner-card next">
-            <div class="sb-label">Next Stage</div>
-            <div class="sb-value" id="bannerNext">—</div>
-          </div>
-          <div class="stage-banner-card next">
-            <div class="sb-label">Progress</div>
-            <div class="sb-value" id="bannerProgress">0%</div>
-          </div>
-        </div>
-
-        <div class="steps-card">
-          <div class="steps-card-header"><h3>Route / Process Steps</h3></div>
-          <div class="steps-table-wrap">
-            <table class="steps-table">
-              <thead><tr>
-                <th>ISN</th><th style="min-width:150px;">Process</th><th style="min-width:220px;">Operation Description</th>
-                <th style="min-width:140px;">Machine</th><th>Current</th><th>Done</th><th style="min-width:100px;">Done Date</th><th></th>
-              </tr></thead>
-              <tbody id="stepsBody"></tbody>
-            </table>
-          </div>
-          <button class="add-step-btn" onclick="addStep()">+ Add process step</button>
-        </div>
+        <div class="comp-tabs" id="compTabs"></div>
+        <div class="comp-panel" id="compPanel"></div>
       </div>
 
       <!-- SETTINGS PAGE -->
@@ -396,15 +363,19 @@
   <div class="modal-box">
     <button class="modal-close-x" onclick="closeImportModal()">&times;</button>
     <h3>Import Route Card</h3>
-    <div class="modal-sub">Choose where to bring this route into.</div>
+    <div class="modal-sub">Each route card becomes one component (e.g. Gear, Pinion) inside a project.</div>
     <div class="import-preview" id="importPreview"></div>
+    <div class="field" style="margin-bottom:14px;">
+      <label>Component Name</label>
+      <input type="text" id="importComponentName" placeholder="e.g. Gear, Pinion, Tooling">
+    </div>
     <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:10px;" onclick="confirmImportAsNew()">Create as New Project</button>
     <hr class="modal-divider">
     <div class="field" style="margin-bottom:8px;">
-      <label>Or attach to an existing project</label>
+      <label>Or add as a component to an existing project</label>
       <select id="attachTargetSelect"></select>
     </div>
-    <button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="confirmImportAttach()">Attach to Selected Project</button>
+    <button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="confirmImportAttach()">Add Component to Selected Project</button>
   </div>
 </div>
 
@@ -425,6 +396,7 @@ let sb = null;
 let projects = {};
 let lists = {customers:[], machines:[]};
 let currentProjectId = null;
+let activeComponentId = null;
 let pendingDwgFile = null, removedDwg = false;
 let importParsed = null;
 let statusChartInst = null, gaugeChartInst = null;
@@ -457,23 +429,24 @@ function disableWrites(disabled){
 function rowToProject(r){
   return {
     id:r.id, month:r.month, jonNo:r.jon_no, jonDate:r.jon_date, poNum:r.po_num, poDate:r.po_date, dueDate:r.due_date,
-    customer:r.customer, drawingNo:r.drawing_no, description:r.description, material:r.material, psn:r.psn, cdn:r.cdn,
-    qty:r.qty, setRate:r.set_rate, valueLacs:r.value_lacs, status:r.status||'Running', delayReason:r.delay_reason,
-    dwgFileName:r.dwg_file_name, dwgFilePath:r.dwg_file_path,
-    currentStepId:r.current_step_id, steps: r.steps||[],
+    customer:r.customer, qty:r.qty, setRate:r.set_rate, valueLacs:r.value_lacs,
+    status:r.status||'Running', delayReason:r.delay_reason,
+    components: r.components || [],
     updatedAt: r.updated_at ? new Date(r.updated_at).getTime() : Date.now()
   };
 }
 function projectToRow(p){
   return {
     id:p.id, month:p.month||null, jon_no:p.jonNo||null, jon_date:p.jonDate||null, po_num:p.poNum||null, po_date:p.poDate||null, due_date:p.dueDate||null,
-    customer:p.customer||null, drawing_no:p.drawingNo||null, description:p.description||null, material:p.material||null, psn:p.psn||null, cdn:p.cdn||null,
-    qty: p.qty===''?null:p.qty, set_rate: p.setRate===''?null:p.setRate, value_lacs: p.valueLacs===''?null:p.valueLacs,
+    customer:p.customer||null, qty: p.qty===''?null:p.qty, set_rate: p.setRate===''?null:p.setRate, value_lacs: p.valueLacs===''?null:p.valueLacs,
     status:p.status||'Running', delay_reason:p.delayReason||null,
-    dwg_file_name:p.dwgFileName||null, dwg_file_path:p.dwgFilePath||null,
-    current_step_id:p.currentStepId||null, steps:p.steps||[],
+    components: p.components||[],
     updated_at:new Date().toISOString()
   };
+}
+function newComponent(name){
+  return { id:uid('comp'), name:name||'Component', drawingNo:'', description:'', material:'', psn:'', cdn:'',
+    dwgFileName:null, dwgFilePath:null, currentStepId:null, steps:[] };
 }
 
 async function loadProjects(){
@@ -503,11 +476,16 @@ async function updateProjectRow(id, partial){
   if(error){ showToast('Save failed: '+error.message); console.error(error); return false; }
   return true;
 }
+function persistComponents(){
+  const p = projects[currentProjectId];
+  if(!p) return;
+  updateProjectRow(currentProjectId, {components:p.components, updated_at:new Date().toISOString()});
+}
 
-async function uploadFile(projectId, file){
+async function uploadFile(projectId, componentId, file){
   if(!sb) return null;
   const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g,'_');
-  const path = `${projectId}/dwg-${Date.now()}-${safeName}`;
+  const path = `${projectId}/${componentId}/dwg-${Date.now()}-${safeName}`;
   const {error} = await sb.storage.from(CONFIG.BUCKET_NAME).upload(path, file, {upsert:true});
   if(error){ showToast('Upload failed: '+error.message); console.error(error); return null; }
   return path;
@@ -537,7 +515,7 @@ function goToPage(page){
   document.getElementById('page-'+page).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.page===page));
   document.getElementById('overviewSearchWrap').style.display = page==='overview' ? '' : 'none';
-  if(page==='overview'){ currentProjectId = null; renderOverview(); }
+  if(page==='overview'){ currentProjectId = null; activeComponentId = null; renderOverview(); }
   if(window.innerWidth<=760) document.getElementById('sidebar').classList.remove('show');
 }
 async function refreshAll(){
@@ -566,24 +544,35 @@ function isOverdue(p){
   const today = new Date(); today.setHours(0,0,0,0);
   return d < today;
 }
-function stepIndexById(p, stepId){ return (p.steps||[]).findIndex(s=>s.id===stepId); }
-function progressPct(p){
-  const steps = p.steps||[];
+function stepIndexById(comp, stepId){ return (comp.steps||[]).findIndex(s=>s.id===stepId); }
+function compProgressPct(comp){
+  const steps = comp.steps||[];
   if(!steps.length) return 0;
-  const idx = stepIndexById(p, p.currentStepId);
+  const idx = stepIndexById(comp, comp.currentStepId);
   if(idx>=0) return Math.round(((idx+1)/steps.length)*100);
   const doneCount = steps.filter(s=>s.done).length;
   return Math.round((doneCount/steps.length)*100);
 }
-function currentStepName(p){
-  const idx = stepIndexById(p, p.currentStepId);
-  return idx>=0 ? p.steps[idx].process : '—';
+function projectProgressPct(p){
+  const comps = (p.components||[]).filter(c=>c.steps && c.steps.length);
+  if(!comps.length) return 0;
+  const total = comps.reduce((sum,c)=>sum+compProgressPct(c),0);
+  return Math.round(total/comps.length);
 }
-function nextStepName(p){
-  const idx = stepIndexById(p, p.currentStepId);
-  if(idx>=0 && p.steps[idx+1]) return p.steps[idx+1].process;
-  if(idx<0 && p.steps && p.steps.length) return p.steps[0].process;
+function compCurrentStepName(comp){
+  const idx = stepIndexById(comp, comp.currentStepId);
+  return idx>=0 ? comp.steps[idx].process : '—';
+}
+function compNextStepName(comp){
+  const idx = stepIndexById(comp, comp.currentStepId);
+  if(idx>=0 && comp.steps[idx+1]) return comp.steps[idx+1].process;
+  if(idx<0 && comp.steps && comp.steps.length) return comp.steps[0].process;
   return '—';
+}
+function projectStageSummary(p){
+  const comps = p.components||[];
+  if(!comps.length) return '—';
+  return comps.map(c=>`${escapeHtml(c.name)}: ${escapeHtml(compCurrentStepName(c))}`).join(' · ');
 }
 
 /* ===================== OVERVIEW ===================== */
@@ -598,7 +587,8 @@ function renderOverview(){
 
   let filtered = list.filter(p=>{
     if(!search) return true;
-    const hay = [p.drawingNo,p.description,p.customer,p.poNum,p.jonNo].join(' ').toLowerCase();
+    const compHay = (p.components||[]).map(c=>c.drawingNo+' '+c.description+' '+c.name).join(' ');
+    const hay = [p.customer,p.poNum,p.jonNo,compHay].join(' ').toLowerCase();
     return hay.includes(search);
   });
   filtered.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
@@ -608,17 +598,19 @@ function renderOverview(){
   document.getElementById('emptyState').style.display = filtered.length ? 'none' : 'block';
 
   filtered.forEach(p=>{
-    const pct = progressPct(p);
+    const pct = projectProgressPct(p);
     const overdue = isOverdue(p);
+    const comps = p.components||[];
+    const title = comps.length ? comps.map(c=>c.drawingNo||c.name).join(' + ') : (p.jonNo || 'Untitled');
     const row = document.createElement('div');
     row.className = 'project-row row-'+statusClass(p.status);
     row.onclick = ()=>openProject(p.id);
     row.innerHTML = `
       <div class="pr-main">
-        <div class="pr-title">${escapeHtml(p.drawingNo || p.jonNo || 'Untitled')} ${p.description ? '· '+escapeHtml(p.description) : ''}</div>
+        <div class="pr-title">${escapeHtml(title)} ${comps.map(c=>`<span class="comp-chip">${escapeHtml(c.name)}</span>`).join('')}</div>
         <div class="pr-sub">${escapeHtml(p.customer||'No customer')}${p.poNum ? ' · PO '+escapeHtml(p.poNum) : ''}</div>
       </div>
-      <div class="pr-stage">${escapeHtml(currentStepName(p))}${overdue ? '<span class="overdue-badge">Overdue</span>' : ''}</div>
+      <div class="pr-stage">${projectStageSummary(p)}${overdue ? '<span class="overdue-badge">Overdue</span>' : ''}</div>
       <div class="pr-progress"><div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div></div>
       <span class="pill ${statusClass(p.status)}"><span class="dot"></span>${p.status}</span>
     `;
@@ -644,7 +636,7 @@ function renderCharts(){
   document.getElementById('statusLegend').innerHTML = Object.keys(counts).map(k=>`
     <div class="legend-row"><span class="lbl"><span class="sw" style="background:${colors[k]}"></span>${k}</span><span class="num">${counts[k]}</span></div>`).join('');
 
-  const pcts = list.map(p=>progressPct(p));
+  const pcts = list.map(p=>projectProgressPct(p));
   const avgPct = pcts.length ? Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length) : 0;
   document.getElementById('gaugeNum').textContent = avgPct + '%';
   const gaugeCtx = document.getElementById('completionGauge').getContext('2d');
@@ -699,9 +691,8 @@ function populateDropdown(elId, items, placeholder, current){
 async function createBlankProject(){
   if(!sb){ showToast('Connect Supabase first — see setup banner'); return; }
   const id = uid('proj');
-  const p = { id, month:'', jonNo:'', jonDate:'', poNum:'', poDate:'', dueDate:'', customer:'', drawingNo:'',
-    description:'', material:'', psn:'', cdn:'', qty:'', setRate:'', valueLacs:'', status:'Running', delayReason:'',
-    dwgFileName:null, dwgFilePath:null, currentStepId:null, steps:[] };
+  const p = { id, month:'', jonNo:'', jonDate:'', poNum:'', poDate:'', dueDate:'', customer:'',
+    qty:'', setRate:'', valueLacs:'', status:'Running', delayReason:'', components:[newComponent('Component 1')] };
   const {error} = await sb.from('projects').insert(projectToRow(p));
   if(error){ showToast('Could not create project: '+error.message); console.error(error); return; }
   projects[id] = p;
@@ -714,8 +705,10 @@ function openProject(id){
   if(!p) return;
   goToPage('project');
 
-  document.getElementById('wsTitle').textContent = p.drawingNo || p.jonNo || 'Untitled Project';
-  document.getElementById('wsSub').textContent = p.description || '';
+  const comps = p.components||[];
+  const title = comps.length ? comps.map(c=>c.drawingNo||c.name).join(' + ') : (p.jonNo || 'Untitled Project');
+  document.getElementById('wsTitle').textContent = title;
+  document.getElementById('wsSub').textContent = p.customer || '';
 
   populateDropdown('f_customer', lists.customers, 'Select customer', p.customer);
   document.getElementById('f_month').value = p.month||'';
@@ -724,11 +717,6 @@ function openProject(id){
   document.getElementById('f_poNum').value = p.poNum||'';
   document.getElementById('f_poDate').value = p.poDate||'';
   document.getElementById('f_dueDate').value = p.dueDate||'';
-  document.getElementById('f_drawingNo').value = p.drawingNo||'';
-  document.getElementById('f_description').value = p.description||'';
-  document.getElementById('f_material').value = p.material||'';
-  document.getElementById('f_psn').value = p.psn||'';
-  document.getElementById('f_cdn').value = p.cdn||'';
   document.getElementById('f_qty').value = p.qty||'';
   document.getElementById('f_setRate').value = p.setRate||'';
   document.getElementById('f_valueLacs').value = p.valueLacs||'';
@@ -736,23 +724,20 @@ function openProject(id){
   document.getElementById('f_delayReason').value = p.delayReason||'';
   document.getElementById('delayReasonField').style.display = (p.status==='Delayed'||p.status==='Stopped') ? '' : 'none';
 
-  renderDwgSlot(p);
-  renderSteps(p);
-  updateStageBanner(p);
+  if(!comps.length){ p.components=[newComponent('Component 1')]; persistComponents(); }
+  activeComponentId = p.components[0].id;
+  renderComponentTabs(p);
+  renderComponentPanel(p);
 }
 
 function saveHeaderField(field, value){
   const p = projects[currentProjectId];
   if(!p) return;
   p[field] = value;
-  if(field==='drawingNo' || field==='description'){
-    document.getElementById('wsTitle').textContent = p.drawingNo || p.jonNo || 'Untitled Project';
-    document.getElementById('wsSub').textContent = p.description || '';
-  }
+  if(field==='customer'){ document.getElementById('wsSub').textContent = p.customer||''; }
   const row = projectToRow(p);
   const dbKeyMap = {month:'month',jonNo:'jon_no',jonDate:'jon_date',poNum:'po_num',poDate:'po_date',dueDate:'due_date',
-    customer:'customer',drawingNo:'drawing_no',description:'description',material:'material',psn:'psn',cdn:'cdn',
-    qty:'qty',setRate:'set_rate',valueLacs:'value_lacs',delayReason:'delay_reason'};
+    customer:'customer',qty:'qty',setRate:'set_rate',valueLacs:'value_lacs',delayReason:'delay_reason'};
   const dbKey = dbKeyMap[field];
   if(dbKey) updateProjectRow(currentProjectId, {[dbKey]: row[dbKey], updated_at:new Date().toISOString()});
 }
@@ -767,25 +752,132 @@ function onStatusChange(){
 async function deleteCurrentProject(){
   if(!currentProjectId) return;
   const p = projects[currentProjectId];
-  if(!confirm('Delete this project and its uploaded drawing? This cannot be undone.')) return;
+  if(!confirm('Delete this project and all its components/drawings? This cannot be undone.')) return;
   const {error} = await sb.from('projects').delete().eq('id', currentProjectId);
   if(error){ showToast('Delete failed: '+error.message); return; }
-  if(p && p.dwgFilePath) await deleteFileAtPath(p.dwgFilePath);
+  for(const c of (p.components||[])){ if(c.dwgFilePath) await deleteFileAtPath(c.dwgFilePath); }
   delete projects[currentProjectId];
   showToast('Project deleted');
   goToPage('overview');
 }
 
-/* ---- drawing file ---- */
-function renderDwgSlot(p){
+/* ---- component tabs ---- */
+function renderComponentTabs(p){
+  const wrap = document.getElementById('compTabs');
+  wrap.innerHTML = '';
+  (p.components||[]).forEach(c=>{
+    const btn = document.createElement('button');
+    btn.className = 'comp-tab' + (c.id===activeComponentId ? ' active' : '');
+    btn.textContent = c.name || 'Component';
+    btn.onclick = ()=>{ activeComponentId = c.id; renderComponentTabs(p); renderComponentPanel(p); };
+    wrap.appendChild(btn);
+  });
+  const addBtn = document.createElement('button');
+  addBtn.className = 'comp-tab-add';
+  addBtn.textContent = '+ Add Component';
+  addBtn.onclick = ()=>{
+    const name = prompt('Component name (e.g. Gear, Pinion, Tooling):');
+    if(!name || !name.trim()) return;
+    const comp = newComponent(name.trim());
+    p.components.push(comp);
+    activeComponentId = comp.id;
+    persistComponents();
+    renderComponentTabs(p);
+    renderComponentPanel(p);
+  };
+  wrap.appendChild(addBtn);
+}
+
+function getActiveComponent(){
+  const p = projects[currentProjectId];
+  if(!p) return null;
+  return (p.components||[]).find(c=>c.id===activeComponentId) || null;
+}
+
+function renderComponentPanel(p){
+  const comp = getActiveComponent();
+  const panel = document.getElementById('compPanel');
+  if(!comp){ panel.innerHTML = '<div class="empty-state">No component selected</div>'; return; }
+
+  panel.innerHTML = `
+    <div class="comp-panel-top">
+      <div class="comp-name-field field">
+        <label>Component Name</label>
+        <input type="text" id="c_name" value="${escapeHtml(comp.name)}" onchange="updateCompField('name', this.value)">
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="exportRouteCard()">Export</button>
+      <button class="btn btn-secondary btn-sm" onclick="deleteComponent()" style="color:var(--red);">Delete Component</button>
+    </div>
+    <div class="field-grid" style="margin-bottom:14px;">
+      <div class="field"><label>Drawing No</label><input type="text" id="c_drawingNo" value="${escapeHtml(comp.drawingNo)}" onchange="updateCompField('drawingNo', this.value)"></div>
+      <div class="field"><label>Description</label><input type="text" id="c_description" value="${escapeHtml(comp.description)}" onchange="updateCompField('description', this.value)"></div>
+      <div class="field"><label>Material</label><input type="text" id="c_material" value="${escapeHtml(comp.material)}" onchange="updateCompField('material', this.value)"></div>
+      <div class="field"><label>PSN</label><input type="text" id="c_psn" value="${escapeHtml(comp.psn)}" onchange="updateCompField('psn', this.value)"></div>
+      <div class="field" style="grid-column:span 2;">
+        <label>Drawing File</label>
+        <div id="f_dwgSlot"></div>
+        <input type="file" id="f_dwgInput" class="hidden-file-input" onchange="handleDwgFileSelect(event)">
+      </div>
+    </div>
+
+    <div class="banner-stage">
+      <div class="stage-banner-card"><div class="sb-label">Current Stage</div><div class="sb-value" id="bannerCurrent">—</div></div>
+      <div class="stage-banner-card next"><div class="sb-label">Next Stage</div><div class="sb-value" id="bannerNext">—</div></div>
+      <div class="stage-banner-card next"><div class="sb-label">Progress</div><div class="sb-value" id="bannerProgress">0%</div></div>
+    </div>
+
+    <div class="steps-table-wrap">
+      <table class="steps-table">
+        <thead><tr>
+          <th>ISN</th><th style="min-width:140px;">Process</th><th style="min-width:200px;">Operation Description</th>
+          <th style="min-width:130px;">Machine</th><th>Current</th><th>Done</th><th style="min-width:95px;">Done Date</th>
+          <th style="min-width:160px;">Remarks</th><th></th>
+        </tr></thead>
+        <tbody id="stepsBody"></tbody>
+      </table>
+    </div>
+    <button class="add-step-btn" onclick="addStep()">+ Add process step</button>
+  `;
+  renderDwgSlot(comp);
+  renderSteps(comp);
+  updateStageBanner(comp);
+}
+
+function updateCompField(field, value){
+  const comp = getActiveComponent();
+  if(!comp) return;
+  comp[field] = value;
+  if(field==='drawingNo' || field==='name'){
+    const p = projects[currentProjectId];
+    const title = p.components.map(c=>c.drawingNo||c.name).join(' + ');
+    document.getElementById('wsTitle').textContent = title;
+    if(field==='name') renderComponentTabs(p);
+  }
+  persistComponents();
+}
+function deleteComponent(){
+  const p = projects[currentProjectId];
+  if(p.components.length<=1){ showToast("Can't delete the only component — delete the project instead"); return; }
+  const comp = getActiveComponent();
+  if(!confirm(`Delete component "${comp.name}" and its drawing? This cannot be undone.`)) return;
+  if(comp.dwgFilePath) deleteFileAtPath(comp.dwgFilePath);
+  p.components = p.components.filter(c=>c.id!==comp.id);
+  activeComponentId = p.components[0].id;
+  persistComponents();
+  renderComponentTabs(p);
+  renderComponentPanel(p);
+  showToast('Component deleted');
+}
+
+/* ---- drawing file (per component) ---- */
+function renderDwgSlot(comp){
   const el = document.getElementById('f_dwgSlot');
   if(pendingDwgFile){
-    el.innerHTML = `<div class="file-slot"><span class="file-slot-name">${escapeHtml(pendingDwgFile.name)} (will upload on save)</span>
-      <div class="file-slot-actions"><button onclick="clearPendingDwg()">Cancel</button></div></div>`;
-  } else if(p.dwgFileName && !removedDwg){
-    el.innerHTML = `<div class="file-slot"><span class="file-slot-name">${escapeHtml(p.dwgFileName)}</span>
+    el.innerHTML = `<div class="file-slot"><span class="file-slot-name">${escapeHtml(pendingDwgFile.name)} (uploading…)</span></div>`;
+  } else if(comp.dwgFileName && !removedDwg){
+    el.innerHTML = `<div class="file-slot"><span class="file-slot-name">${escapeHtml(comp.dwgFileName)}</span>
       <div class="file-slot-actions">
-        <button onclick="downloadFile('${p.dwgFilePath}','${escapeHtml(p.dwgFileName)}')">Download</button>
+        <button onclick="downloadFile('${comp.dwgFilePath}','${escapeHtml(comp.dwgFileName)}')">Download</button>
         <button onclick="document.getElementById('f_dwgInput').click()">Replace</button>
         <button onclick="removeDwg()">Remove</button>
       </div></div>`;
@@ -801,26 +893,26 @@ function handleDwgFileSelect(evt){
   saveDwgNow();
 }
 async function saveDwgNow(){
-  const p = projects[currentProjectId];
-  if(!p || !pendingDwgFile) return;
+  const comp = getActiveComponent();
+  if(!comp || !pendingDwgFile) return;
   showToast('Uploading…');
-  if(p.dwgFilePath) await deleteFileAtPath(p.dwgFilePath);
-  const path = await uploadFile(currentProjectId, pendingDwgFile);
+  renderDwgSlot(comp);
+  if(comp.dwgFilePath) await deleteFileAtPath(comp.dwgFilePath);
+  const path = await uploadFile(currentProjectId, comp.id, pendingDwgFile);
   if(path){
-    p.dwgFilePath = path; p.dwgFileName = pendingDwgFile.name;
-    await updateProjectRow(currentProjectId, {dwg_file_name:p.dwgFileName, dwg_file_path:p.dwgFilePath, updated_at:new Date().toISOString()});
+    comp.dwgFilePath = path; comp.dwgFileName = pendingDwgFile.name;
+    persistComponents();
     showToast('Drawing uploaded');
   }
   pendingDwgFile = null;
-  renderDwgSlot(p);
+  renderDwgSlot(comp);
 }
-function clearPendingDwg(){ pendingDwgFile = null; document.getElementById('f_dwgInput').value=''; renderDwgSlot(projects[currentProjectId]); }
-async function removeDwg(){
-  const p = projects[currentProjectId];
-  if(p.dwgFilePath) await deleteFileAtPath(p.dwgFilePath);
-  p.dwgFileName = null; p.dwgFilePath = null;
-  await updateProjectRow(currentProjectId, {dwg_file_name:null, dwg_file_path:null, updated_at:new Date().toISOString()});
-  renderDwgSlot(p);
+function removeDwg(){
+  const comp = getActiveComponent();
+  if(comp.dwgFilePath) deleteFileAtPath(comp.dwgFilePath);
+  comp.dwgFileName = null; comp.dwgFilePath = null;
+  persistComponents();
+  renderDwgSlot(comp);
   showToast('Drawing removed');
 }
 function downloadFile(path, name){
@@ -833,26 +925,26 @@ function downloadFile(path, name){
 /* ---- steps ---- */
 function populateMachineDropdowns(){
   document.querySelectorAll('.machine-select').forEach(sel=>{
-    const current = sel.value;
+    const current = sel.dataset.value || '';
     sel.innerHTML = `<option value="">—</option>` + lists.machines.map(m=>`<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
     if(current) sel.value = current;
   });
 }
-
-function renderSteps(p){
+function renderSteps(comp){
   const tbody = document.getElementById('stepsBody');
   tbody.innerHTML = '';
-  (p.steps||[]).forEach((s,i)=>{
+  (comp.steps||[]).forEach((s,i)=>{
     const tr = document.createElement('tr');
-    if(s.id === p.currentStepId) tr.className = 'is-current';
+    if(s.id === comp.currentStepId) tr.className = 'is-current';
     tr.innerHTML = `
       <td class="step-isn">${i+1}</td>
       <td><input class="step-input" type="text" value="${escapeHtml(s.process)}" onchange="updateStepField('${s.id}','process',this.value)"></td>
       <td><input class="step-input" type="text" value="${escapeHtml(s.operationDescription)}" onchange="updateStepField('${s.id}','operationDescription',this.value)"></td>
-      <td><select class="step-input machine-select" onchange="updateStepField('${s.id}','machine',this.value)"></select></td>
-      <td style="text-align:center;"><input type="radio" name="currentStepRadio" class="current-radio" ${s.id===p.currentStepId?'checked':''} onchange="setCurrentStep('${s.id}')"></td>
+      <td><select class="step-input machine-select" data-value="${escapeHtml(s.machine||'')}" onchange="updateStepField('${s.id}','machine',this.value)"></select></td>
+      <td style="text-align:center;"><input type="radio" name="currentStepRadio" class="current-radio" ${s.id===comp.currentStepId?'checked':''} onchange="setCurrentStep('${s.id}')"></td>
       <td style="text-align:center;"><input type="checkbox" class="done-check" ${s.done?'checked':''} onchange="updateStepField('${s.id}','done',this.checked)"></td>
       <td><input class="step-input" type="text" placeholder="DD-MM-YYYY" value="${escapeHtml(s.doneDate||'')}" onchange="updateStepField('${s.id}','doneDate',this.value)"></td>
+      <td><input class="step-input" type="text" value="${escapeHtml(s.remarks||'')}" onchange="updateStepField('${s.id}','remarks',this.value)"></td>
       <td>
         <div class="step-actions">
           <button onclick="moveStep('${s.id}',-1)" title="Move up">▲</button>
@@ -863,87 +955,75 @@ function renderSteps(p){
     tbody.appendChild(tr);
   });
   populateMachineDropdowns();
-  // restore machine selections (innerHTML rebuild above wiped values, so set them from state)
-  document.querySelectorAll('#stepsBody tr').forEach((tr,i)=>{
-    const s = p.steps[i];
-    const sel = tr.querySelector('.machine-select');
-    if(sel && s.machine) sel.value = s.machine;
-  });
 }
-
-function persistSteps(){
-  const p = projects[currentProjectId];
-  if(!p) return;
-  updateProjectRow(currentProjectId, {steps:p.steps, current_step_id:p.currentStepId, updated_at:new Date().toISOString()});
-  updateStageBanner(p);
-  renderOverviewStatsQuietly();
+function updateStageBanner(comp){
+  document.getElementById('bannerCurrent').textContent = compCurrentStepName(comp);
+  document.getElementById('bannerNext').textContent = compNextStepName(comp);
+  document.getElementById('bannerProgress').textContent = compProgressPct(comp) + '%';
 }
-function updateStageBanner(p){
-  document.getElementById('bannerCurrent').textContent = currentStepName(p);
-  document.getElementById('bannerNext').textContent = nextStepName(p);
-  document.getElementById('bannerProgress').textContent = progressPct(p) + '%';
-}
-function renderOverviewStatsQuietly(){ /* cheap no-op hook if overview visible later */ }
-
 function updateStepField(stepId, field, value){
-  const p = projects[currentProjectId];
-  const s = (p.steps||[]).find(x=>x.id===stepId);
+  const comp = getActiveComponent();
+  const s = (comp.steps||[]).find(x=>x.id===stepId);
   if(!s) return;
   s[field] = value;
-  persistSteps();
+  updateStageBanner(comp);
+  persistComponents();
 }
 function setCurrentStep(stepId){
-  const p = projects[currentProjectId];
-  p.currentStepId = stepId;
-  renderSteps(p);
-  persistSteps();
+  const comp = getActiveComponent();
+  comp.currentStepId = stepId;
+  renderSteps(comp);
+  updateStageBanner(comp);
+  persistComponents();
 }
 function addStep(){
-  const p = projects[currentProjectId];
-  if(!p.steps) p.steps = [];
-  p.steps.push({id:uid('step'), isn:String(p.steps.length+1), process:'', operationDescription:'', machine:'', done:false, doneDate:''});
-  renderSteps(p);
-  persistSteps();
+  const comp = getActiveComponent();
+  if(!comp.steps) comp.steps = [];
+  comp.steps.push({id:uid('step'), isn:String(comp.steps.length+1), process:'', operationDescription:'', machine:'', remarks:'', done:false, doneDate:''});
+  renderSteps(comp);
+  updateStageBanner(comp);
+  persistComponents();
 }
 function removeStep(stepId){
-  const p = projects[currentProjectId];
-  p.steps = p.steps.filter(s=>s.id!==stepId);
-  if(p.currentStepId===stepId) p.currentStepId = null;
-  renderSteps(p);
-  persistSteps();
+  const comp = getActiveComponent();
+  comp.steps = comp.steps.filter(s=>s.id!==stepId);
+  if(comp.currentStepId===stepId) comp.currentStepId = null;
+  renderSteps(comp);
+  updateStageBanner(comp);
+  persistComponents();
 }
 function moveStep(stepId, dir){
-  const p = projects[currentProjectId];
-  const idx = p.steps.findIndex(s=>s.id===stepId);
+  const comp = getActiveComponent();
+  const idx = comp.steps.findIndex(s=>s.id===stepId);
   const newIdx = idx+dir;
-  if(newIdx<0 || newIdx>=p.steps.length) return;
-  [p.steps[idx], p.steps[newIdx]] = [p.steps[newIdx], p.steps[idx]];
-  renderSteps(p);
-  persistSteps();
+  if(newIdx<0 || newIdx>=comp.steps.length) return;
+  [comp.steps[idx], comp.steps[newIdx]] = [comp.steps[newIdx], comp.steps[idx]];
+  renderSteps(comp);
+  persistComponents();
 }
 
-/* ===================== EXPORT ROUTE CARD ===================== */
+/* ===================== EXPORT ROUTE CARD (active component) ===================== */
 function exportRouteCard(){
   if(typeof XLSX === 'undefined'){ showToast('Excel library failed to load'); return; }
   const p = projects[currentProjectId];
-  if(!p) return;
+  const comp = getActiveComponent();
+  if(!comp) return;
   const headerRows = [
-    ['PROCESS SHEET','','','PSN', p.psn||''],
-    ['','','','DWG No', p.drawingNo||''],
-    ['','','','CDN', p.cdn||''],
-    ['DESCRIPTION', p.description||'','','MATERIAL', p.material||''],
+    ['PROCESS SHEET','','','PSN', comp.psn||''],
+    ['','','','DWG No', comp.drawingNo||''],
+    ['DESCRIPTION', comp.description||'','','MATERIAL', comp.material||''],
     ['CUSTOMER', p.customer||'','','PO NUM', p.poNum||''],
     ['QTY', p.qty||'','','VALUE (Rs. Lacs)', p.valueLacs||''],
     [],
-    ['ISN','PROCESS','OPERATION DESCRIPTION','MACHINE','DONE','DONE DATE']
+    ['ISN','PROCESS','OPERATION DESCRIPTION','MACHINE','DONE','DONE DATE','REMARKS']
   ];
-  (p.steps||[]).forEach((s,i)=>{
-    headerRows.push([i+1, s.process, s.operationDescription, s.machine, s.done?'YES':'NO', s.doneDate||'']);
+  (comp.steps||[]).forEach((s,i)=>{
+    headerRows.push([i+1, s.process, s.operationDescription, s.machine, s.done?'YES':'NO', s.doneDate||'', s.remarks||'']);
   });
   const ws = XLSX.utils.aoa_to_sheet(headerRows);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Route Card');
-  XLSX.writeFile(wb, `route-card-${p.drawingNo||p.jonNo||'project'}.xlsx`);
+  XLSX.utils.book_append_sheet(wb, ws, comp.name.slice(0,28) || 'Route Card');
+  XLSX.writeFile(wb, `route-card-${comp.drawingNo||comp.name||'component'}.xlsx`);
   showToast('Exported');
 }
 
@@ -982,7 +1062,8 @@ function parseRouteCardWorkbook(wb){
       if(!isn) break;
       const process = String(row[processCol>=0?processCol:isnCol+1]||'').trim();
       const opDesc = String(row[opCol>=0?opCol:isnCol+3]||'').trim();
-      steps.push({id:uid('step'), isn, process, operationDescription:opDesc, machine:'', done:false, doneDate:''});
+      const remarks = remarksCol>=0 ? String(row[remarksCol]||'').trim() : '';
+      steps.push({id:uid('step'), isn, process, operationDescription:opDesc, machine:'', remarks, done:false, doneDate:''});
     }
   }
   return {header, steps};
@@ -1015,23 +1096,34 @@ function openImportModal(parsed){
     <div><b>Description:</b> ${escapeHtml(parsed.header.description||'—')}</div>
     <div><b>Material:</b> ${escapeHtml(parsed.header.material||'—')}</div>
     <div><b>Steps found:</b> ${parsed.steps.length}</div>`;
+  document.getElementById('importComponentName').value = guessComponentName(parsed.header.description);
   const sel = document.getElementById('attachTargetSelect');
   const projList = Object.values(projects).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
   sel.innerHTML = projList.length
-    ? projList.map(p=>`<option value="${p.id}">${escapeHtml(p.drawingNo||p.jonNo||'Untitled')}${p.description?' — '+escapeHtml(p.description):''}</option>`).join('')
+    ? projList.map(p=>`<option value="${p.id}">${escapeHtml((p.components||[]).map(c=>c.drawingNo||c.name).join(' + ')||p.jonNo||'Untitled')}</option>`).join('')
     : `<option value="">No existing projects yet</option>`;
   document.getElementById('importModal').classList.add('show');
+}
+function guessComponentName(desc){
+  if(!desc) return '';
+  const d = desc.toUpperCase();
+  if(d.includes('PINION')) return 'Pinion';
+  if(d.includes('GEAR')) return 'Gear';
+  if(d.includes('TOOL')) return 'Tooling';
+  return '';
 }
 function closeImportModal(){ document.getElementById('importModal').classList.remove('show'); importParsed = null; }
 
 async function confirmImportAsNew(){
   if(!importParsed) return;
   const h = importParsed.header;
+  const compName = document.getElementById('importComponentName').value.trim() || 'Component 1';
+  const comp = newComponent(compName);
+  comp.drawingNo = h.dwgNo||''; comp.description = h.description||''; comp.material = h.material||'';
+  comp.psn = h.psn||''; comp.cdn = h.cdn||''; comp.steps = importParsed.steps;
   const id = uid('proj');
   const p = { id, month:'', jonNo:'', jonDate:'', poNum:'', poDate:'', dueDate:'', customer:'',
-    drawingNo:h.dwgNo||'', description:h.description||'', material:h.material||'', psn:h.psn||'', cdn:h.cdn||'',
-    qty:'', setRate:'', valueLacs:'', status:'Running', delayReason:'',
-    dwgFileName:null, dwgFilePath:null, currentStepId:null, steps:importParsed.steps };
+    qty:'', setRate:'', valueLacs:'', status:'Running', delayReason:'', components:[comp] };
   const {error} = await sb.from('projects').insert(projectToRow(p));
   if(error){ showToast('Could not create project: '+error.message); console.error(error); return; }
   projects[id] = p;
@@ -1045,19 +1137,18 @@ async function confirmImportAttach(){
   if(!targetId){ showToast('No project selected'); return; }
   const p = projects[targetId];
   const h = importParsed.header;
-  if(!p.drawingNo && h.dwgNo) p.drawingNo = h.dwgNo;
-  if(!p.description && h.description) p.description = h.description;
-  if(!p.material && h.material) p.material = h.material;
-  if(!p.psn && h.psn) p.psn = h.psn;
-  if(!p.cdn && h.cdn) p.cdn = h.cdn;
-  p.steps = importParsed.steps;
-  p.currentStepId = null;
-  const ok = await updateProjectRow(targetId, {
-    drawing_no:p.drawingNo, description:p.description, material:p.material, psn:p.psn, cdn:p.cdn,
-    steps:p.steps, current_step_id:null, updated_at:new Date().toISOString()
-  });
+  const compName = document.getElementById('importComponentName').value.trim() || `Component ${p.components.length+1}`;
+  const comp = newComponent(compName);
+  comp.drawingNo = h.dwgNo||''; comp.description = h.description||''; comp.material = h.material||'';
+  comp.psn = h.psn||''; comp.cdn = h.cdn||''; comp.steps = importParsed.steps;
+  p.components.push(comp);
+  const ok = await updateProjectRow(targetId, {components:p.components, updated_at:new Date().toISOString()});
   closeImportModal();
-  if(ok){ showToast('Route attached to project'); openProject(targetId); }
+  if(ok){
+    showToast('Component added to project');
+    activeComponentId = comp.id;
+    openProject(targetId);
+  }
 }
 
 /* ===================== INIT ===================== */
