@@ -207,6 +207,12 @@
     .main{margin-left:0;}
     .menu-toggle{display:inline-flex;}
     .field-grid{grid-template-columns:1fr;}
+    .project-row{flex-wrap:wrap;row-gap:8px;}
+    .project-row .pr-main{flex-basis:100%;}
+    .project-row .pr-stage{white-space:normal;order:3;flex-basis:100%;}
+    .project-row .pr-progress{order:1;width:60px;}
+    .comp-name-field{flex-basis:100%;}
+    table.steps-table{font-size:12.5px;}
   }
 </style>
 </head>
@@ -338,18 +344,32 @@
 
       <!-- SETTINGS PAGE -->
       <div class="page" id="page-settings">
-        <h3 style="margin-top:0;">Machines &amp; Customers</h3>
-        <p style="color:var(--text-dim);font-size:13.5px;margin-top:-8px;">Manage the dropdown options used across projects.</p>
+        <h3 style="margin-top:0;">Machines, Customers &amp; Custom Fields</h3>
+        <p style="color:var(--text-dim);font-size:13.5px;margin-top:-8px;">Manage dropdown options, or bulk-import a list straight from an Excel/CSV column.</p>
         <div class="settings-grid">
           <div class="list-card">
-            <h4>Machines</h4>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <h4>Machines</h4>
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('machineImportInput').click()">Import Excel</button>
+              <input type="file" id="machineImportInput" class="hidden-file-input" accept=".xlsx,.xls,.csv" onchange="handleListImportFile(event,'machines')">
+            </div>
             <div id="listMachines"></div>
             <div class="add-item-row"><input type="text" id="newMachine" placeholder="Add machine"><button onclick="addListItem('machines','newMachine')">Add</button></div>
           </div>
           <div class="list-card">
-            <h4>Customers</h4>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <h4>Customers</h4>
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('customerImportInput').click()">Import Excel</button>
+              <input type="file" id="customerImportInput" class="hidden-file-input" accept=".xlsx,.xls,.csv" onchange="handleListImportFile(event,'customers')">
+            </div>
             <div id="listCustomers"></div>
             <div class="add-item-row"><input type="text" id="newCustomer" placeholder="Add customer"><button onclick="addListItem('customers','newCustomer')">Add</button></div>
+          </div>
+          <div class="list-card">
+            <h4>Custom Fields</h4>
+            <p style="color:var(--text-dim);font-size:12px;margin:-4px 0 10px;">Define any extra field you want tracked per component (e.g. "HRC", "Batch No"). It'll show up on every component's form, and future route card imports will auto-fill it if that label appears in the sheet.</p>
+            <div id="listCustomFields"></div>
+            <div class="add-item-row"><input type="text" id="newCustomField" placeholder="Add field name"><button onclick="addCustomField()">Add</button></div>
           </div>
         </div>
       </div>
@@ -446,7 +466,7 @@ function projectToRow(p){
 }
 function newComponent(name){
   return { id:uid('comp'), name:name||'Component', drawingNo:'', description:'', material:'', psn:'', cdn:'',
-    dwgFileName:null, dwgFilePath:null, currentStepId:null, steps:[] };
+    dwgFileName:null, dwgFilePath:null, currentStepId:null, steps:[], customFields:{} };
 }
 
 async function loadProjects(){
@@ -462,13 +482,13 @@ async function loadLists(){
   if(!sb) return;
   const {data,error} = await sb.from('app_lists').select('*').eq('id','main').maybeSingle();
   if(error){ showToast('Could not load lists'); console.error(error); return; }
-  if(data){ lists = {customers:data.customers||[], machines:data.machines||[]}; }
-  else { lists = {customers:[], machines:[]}; await saveLists(); }
+  if(data){ lists = {customers:data.customers||[], machines:data.machines||[], customFields:data.custom_fields||[]}; }
+  else { lists = {customers:[], machines:[], customFields:[]}; await saveLists(); }
 }
 async function saveLists(){
   if(!sb) return;
-  const {error} = await sb.from('app_lists').upsert({id:'main', customers:lists.customers, machines:lists.machines});
-  if(error){ showToast('Could not save list'); console.error(error); }
+  const {error} = await sb.from('app_lists').upsert({id:'main', customers:lists.customers, machines:lists.machines, custom_fields:lists.customFields||[]});
+  if(error){ showToast('Could not save list — did you run the ALTER TABLE from SETUP.md?'); console.error(error); }
 }
 async function updateProjectRow(id, partial){
   if(!sb) return false;
@@ -650,6 +670,76 @@ function renderCharts(){
 function renderSettingsLists(){
   renderListBlock('machines','listMachines');
   renderListBlock('customers','listCustomers');
+  renderCustomFieldList();
+}
+function renderCustomFieldList(){
+  const el = document.getElementById('listCustomFields');
+  if(!el) return;
+  el.innerHTML = '';
+  (lists.customFields||[]).forEach((item,idx)=>{
+    const row = document.createElement('div');
+    row.className = 'list-item';
+    row.innerHTML = `<span>${escapeHtml(item)}</span><button onclick="removeCustomField(${idx})">Remove</button>`;
+    el.appendChild(row);
+  });
+  if(!lists.customFields || !lists.customFields.length) el.innerHTML = '<div style="font-size:12.5px;color:var(--text-dim);padding:6px 0;">No custom fields yet</div>';
+}
+function addCustomField(){
+  const input = document.getElementById('newCustomField');
+  const val = input.value.trim();
+  if(!val) return;
+  if(!lists.customFields) lists.customFields = [];
+  if(lists.customFields.some(f=>f.toLowerCase()===val.toLowerCase())){ showToast('Already exists'); return; }
+  lists.customFields.push(val);
+  input.value = '';
+  saveLists();
+  renderCustomFieldList();
+  if(currentProjectId) renderComponentPanel(projects[currentProjectId]);
+}
+function removeCustomField(idx){
+  lists.customFields.splice(idx,1);
+  saveLists();
+  renderCustomFieldList();
+  if(currentProjectId) renderComponentPanel(projects[currentProjectId]);
+}
+
+/* ---- bulk list import from Excel ---- */
+const GENERIC_LIST_HEADERS = ['customer','customers','customername','machine','machines','machinename','name','names'];
+function handleListImportFile(evt, key){
+  const file = evt.target.files[0];
+  if(!file) return;
+  if(!sb){ showToast('Connect Supabase first'); evt.target.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, {header:1, defval:'', raw:false});
+      const values = [];
+      rows.forEach(row=>{
+        (row||[]).forEach(cell=>{
+          const v = String(cell||'').trim();
+          if(v && !GENERIC_LIST_HEADERS.includes(v.toLowerCase())) values.push(v);
+        });
+      });
+      if(!values.length){ showToast('No values found in that file'); return; }
+      if(!lists[key]) lists[key] = [];
+      let added = 0;
+      values.forEach(v=>{
+        if(!lists[key].some(existing=>existing.toLowerCase()===v.toLowerCase())){ lists[key].push(v); added++; }
+      });
+      saveLists();
+      renderSettingsLists();
+      if(currentProjectId) populateMachineDropdowns();
+      showToast(`Added ${added} new ${key}${added===1?'':''} (${values.length-added} already existed)`);
+    }catch(err){
+      console.error(err);
+      showToast("Could not read that file");
+    }
+    evt.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
 }
 function renderListBlock(key, elId){
   const el = document.getElementById(elId);
@@ -813,6 +903,9 @@ function renderComponentPanel(p){
       <div class="field"><label>Description</label><input type="text" id="c_description" value="${escapeHtml(comp.description)}" onchange="updateCompField('description', this.value)"></div>
       <div class="field"><label>Material</label><input type="text" id="c_material" value="${escapeHtml(comp.material)}" onchange="updateCompField('material', this.value)"></div>
       <div class="field"><label>PSN</label><input type="text" id="c_psn" value="${escapeHtml(comp.psn)}" onchange="updateCompField('psn', this.value)"></div>
+      ${(lists.customFields||[]).map(fieldName=>`
+      <div class="field"><label>${escapeHtml(fieldName)}</label><input type="text" value="${escapeHtml((comp.customFields||{})[fieldName]||'')}" onchange="updateCompCustomField('${escapeHtml(fieldName).replace(/'/g,"\\'")}', this.value)"></div>
+      `).join('')}
       <div class="field" style="grid-column:span 2;">
         <label>Drawing File</label>
         <div id="f_dwgSlot"></div>
@@ -843,6 +936,13 @@ function renderComponentPanel(p){
   updateStageBanner(comp);
 }
 
+function updateCompCustomField(fieldName, value){
+  const comp = getActiveComponent();
+  if(!comp) return;
+  if(!comp.customFields) comp.customFields = {};
+  comp.customFields[fieldName] = value;
+  persistComponents();
+}
 function updateCompField(field, value){
   const comp = getActiveComponent();
   if(!comp) return;
@@ -1034,10 +1134,13 @@ function findNextVal(row, idx){
   return '';
 }
 const SEQ_HEADER_KEYS = ['ISN','SLNO','SNO','SRNO','SLNUMBER'];
-function parseRouteCardWorkbook(wb){
+function parseRouteCardWorkbook(wb, customFieldDefs){
+  customFieldDefs = customFieldDefs || [];
+  const customFieldKeyMap = {}; // normKey(fieldName) -> fieldName
+  customFieldDefs.forEach(f=>{ customFieldKeyMap[normKey(f)] = f; });
   const sheet = wb.Sheets[wb.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(sheet, {header:1, defval:'', raw:false});
-  let header = {psn:'',dwgNo:'',cdn:'',description:'',material:'',sheetNo:'',customerName:''};
+  let header = {psn:'',dwgNo:'',cdn:'',description:'',material:'',sheetNo:'',customerName:'',customFields:{}};
   let headerRowIdx=-1, isnCol=-1, processCol=-1, opCol=-1, remarksCol=-1, machineCol=-1;
   for(let r=0;r<rows.length;r++){
     const row = rows[r];
@@ -1051,6 +1154,11 @@ function parseRouteCardWorkbook(wb){
         else if(key.includes('OPERATION')) opCol=c;
         else if(key==='MACHINE') machineCol=c;
         else if(key==='REMARKS') remarksCol=c;
+        continue;
+      }
+      // user-defined custom fields — matched by exact normalized name
+      if(customFieldKeyMap[key] && header.customFields[customFieldKeyMap[key]]===undefined){
+        header.customFields[customFieldKeyMap[key]] = findNextVal(row,c);
         continue;
       }
       // header/label fields — most specific patterns first; keep only the FIRST match
@@ -1089,7 +1197,7 @@ function handleRouteCardFile(evt){
     try{
       const data = new Uint8Array(e.target.result);
       const wb = XLSX.read(data, {type:'array'});
-      const parsed = parseRouteCardWorkbook(wb);
+      const parsed = parseRouteCardWorkbook(wb, lists.customFields);
       if(!parsed.steps.length){ showToast('Could not find a route/process table in that file'); return; }
       importParsed = parsed;
       openImportModal(parsed);
@@ -1102,10 +1210,15 @@ function handleRouteCardFile(evt){
   reader.readAsArrayBuffer(file);
 }
 function openImportModal(parsed){
+  const cf = parsed.header.customFields || {};
+  const cfHtml = Object.keys(cf).length
+    ? Object.keys(cf).map(k=>`<div><b>${escapeHtml(k)}:</b> ${escapeHtml(cf[k]||'—')}</div>`).join('')
+    : '';
   document.getElementById('importPreview').innerHTML = `
     <div><b>Drawing No:</b> ${escapeHtml(parsed.header.dwgNo||'—')}</div>
     <div><b>Description:</b> ${escapeHtml(parsed.header.description||'—')}</div>
     <div><b>Material:</b> ${escapeHtml(parsed.header.material||'—')}</div>
+    ${cfHtml}
     <div><b>Steps found:</b> ${parsed.steps.length}</div>`;
   document.getElementById('importComponentName').value = guessComponentName(parsed.header.description);
   const sel = document.getElementById('attachTargetSelect');
@@ -1139,7 +1252,7 @@ async function confirmImportAsNew(){
   const compName = document.getElementById('importComponentName').value.trim() || 'Component 1';
   const comp = newComponent(compName);
   comp.drawingNo = h.dwgNo||''; comp.description = h.description||''; comp.material = h.material||'';
-  comp.psn = h.psn||''; comp.cdn = h.cdn||''; comp.steps = importParsed.steps;
+  comp.psn = h.psn||''; comp.cdn = h.cdn||''; comp.steps = importParsed.steps; comp.customFields = {...(h.customFields||{})};
   await registerImportedMachines(comp.steps);
   const id = uid('proj');
   const p = { id, month:'', jonNo:'', jonDate:'', poNum:'', poDate:'', dueDate:'', customer:h.customerName||'',
@@ -1160,7 +1273,7 @@ async function confirmImportAttach(){
   const compName = document.getElementById('importComponentName').value.trim() || `Component ${p.components.length+1}`;
   const comp = newComponent(compName);
   comp.drawingNo = h.dwgNo||''; comp.description = h.description||''; comp.material = h.material||'';
-  comp.psn = h.psn||''; comp.cdn = h.cdn||''; comp.steps = importParsed.steps;
+  comp.psn = h.psn||''; comp.cdn = h.cdn||''; comp.steps = importParsed.steps; comp.customFields = {...(h.customFields||{})};
   await registerImportedMachines(comp.steps);
   p.components.push(comp);
   if(!p.customer && h.customerName) p.customer = h.customerName;
