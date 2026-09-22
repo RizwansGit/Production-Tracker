@@ -1028,42 +1028,53 @@ function exportRouteCard(){
 }
 
 /* ===================== IMPORT ROUTE CARD ===================== */
-function normHeaderCell(v){ return String(v||'').trim().toUpperCase(); }
+function normKey(v){ return String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,''); }
 function findNextVal(row, idx){
   for(let i=idx+1;i<row.length;i++){ if(String(row[i]).trim()!=='') return String(row[i]).trim(); }
   return '';
 }
+const SEQ_HEADER_KEYS = ['ISN','SLNO','SNO','SRNO','SLNUMBER'];
 function parseRouteCardWorkbook(wb){
   const sheet = wb.Sheets[wb.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(sheet, {header:1, defval:'', raw:false});
-  let header = {psn:'',dwgNo:'',cdn:'',description:'',material:'',sheetNo:''};
-  let headerRowIdx=-1, isnCol=-1, processCol=-1, opCol=-1, remarksCol=-1;
+  let header = {psn:'',dwgNo:'',cdn:'',description:'',material:'',sheetNo:'',customerName:''};
+  let headerRowIdx=-1, isnCol=-1, processCol=-1, opCol=-1, remarksCol=-1, machineCol=-1;
   for(let r=0;r<rows.length;r++){
     const row = rows[r];
     for(let c=0;c<row.length;c++){
-      const cell = normHeaderCell(row[c]);
-      if(cell==='PSN') header.psn = findNextVal(row,c);
-      else if(cell==='DWG NO' || cell==='DWG. NO' || cell==='DWG.NO') header.dwgNo = findNextVal(row,c);
-      else if(cell==='CDN') header.cdn = findNextVal(row,c);
-      else if(cell==='DESCRIPTION' && !header.description) header.description = findNextVal(row,c);
-      else if(cell==='MATERIAL') header.material = findNextVal(row,c);
-      else if(cell==='SHEET NO') header.sheetNo = findNextVal(row,c);
-      else if(cell==='ISN'){ headerRowIdx=r; isnCol=c; }
-      else if(cell==='PROCESS' && headerRowIdx===r) processCol=c;
-      else if(cell.indexOf('OPERATION')>=0 && headerRowIdx===r) opCol=c;
-      else if(cell==='REMARKS' && headerRowIdx===r) remarksCol=c;
+      const key = normKey(row[c]);
+      if(!key) continue;
+      // table header row markers (checked first, most specific — a sequence-number column)
+      if(SEQ_HEADER_KEYS.includes(key)){ headerRowIdx=r; isnCol=c; continue; }
+      if(headerRowIdx===r){
+        if(key.includes('PROCESS')) processCol=c;
+        else if(key.includes('OPERATION')) opCol=c;
+        else if(key==='MACHINE') machineCol=c;
+        else if(key==='REMARKS') remarksCol=c;
+        continue;
+      }
+      // header/label fields — most specific patterns first; keep only the FIRST match
+      // (route sheets often repeat similar-looking words in footer/remarks text further down)
+      if(key.includes('CUSTOMERNAME') && !header.customerName) header.customerName = findNextVal(row,c);
+      else if((key.includes('CUSTOMERDWG') || key.includes('CUSTOMERDRG') || key==='CDN') && !header.cdn) header.cdn = findNextVal(row,c);
+      else if((key.includes('DWG') || key.includes('DRG')) && !header.dwgNo) header.dwgNo = findNextVal(row,c);
+      else if(key==='PSN' && !header.psn) header.psn = findNextVal(row,c);
+      else if(key==='DESCRIPTION' && !header.description) header.description = findNextVal(row,c);
+      else if(key==='MATERIAL' && !header.material) header.material = findNextVal(row,c);
+      else if(key.includes('SHEETNO') && !header.sheetNo) header.sheetNo = findNextVal(row,c);
     }
   }
   const steps = [];
   if(headerRowIdx>=0){
     for(let r=headerRowIdx+1;r<rows.length;r++){
       const row = rows[r];
-      const isn = String(row[isnCol]||'').trim();
-      if(!isn) break;
+      const isnRaw = String(row[isnCol]||'').trim();
+      if(!isnRaw || isNaN(parseFloat(isnRaw))) break;
       const process = String(row[processCol>=0?processCol:isnCol+1]||'').trim();
       const opDesc = String(row[opCol>=0?opCol:isnCol+3]||'').trim();
+      const machine = machineCol>=0 ? String(row[machineCol]||'').trim() : '';
       const remarks = remarksCol>=0 ? String(row[remarksCol]||'').trim() : '';
-      steps.push({id:uid('step'), isn, process, operationDescription:opDesc, machine:'', remarks, done:false, doneDate:''});
+      steps.push({id:uid('step'), isn:isnRaw, process, operationDescription:opDesc, machine, remarks, done:false, doneDate:''});
     }
   }
   return {header, steps};
@@ -1114,6 +1125,14 @@ function guessComponentName(desc){
 }
 function closeImportModal(){ document.getElementById('importModal').classList.remove('show'); importParsed = null; }
 
+async function registerImportedMachines(steps){
+  const found = new Set();
+  (steps||[]).forEach(s=>{ if(s.machine) found.add(s.machine); });
+  if(!found.size) return;
+  let changed = false;
+  found.forEach(m=>{ if(!lists.machines.includes(m)){ lists.machines.push(m); changed = true; } });
+  if(changed) await saveLists();
+}
 async function confirmImportAsNew(){
   if(!importParsed) return;
   const h = importParsed.header;
@@ -1121,8 +1140,9 @@ async function confirmImportAsNew(){
   const comp = newComponent(compName);
   comp.drawingNo = h.dwgNo||''; comp.description = h.description||''; comp.material = h.material||'';
   comp.psn = h.psn||''; comp.cdn = h.cdn||''; comp.steps = importParsed.steps;
+  await registerImportedMachines(comp.steps);
   const id = uid('proj');
-  const p = { id, month:'', jonNo:'', jonDate:'', poNum:'', poDate:'', dueDate:'', customer:'',
+  const p = { id, month:'', jonNo:'', jonDate:'', poNum:'', poDate:'', dueDate:'', customer:h.customerName||'',
     qty:'', setRate:'', valueLacs:'', status:'Running', delayReason:'', components:[comp] };
   const {error} = await sb.from('projects').insert(projectToRow(p));
   if(error){ showToast('Could not create project: '+error.message); console.error(error); return; }
@@ -1141,8 +1161,10 @@ async function confirmImportAttach(){
   const comp = newComponent(compName);
   comp.drawingNo = h.dwgNo||''; comp.description = h.description||''; comp.material = h.material||'';
   comp.psn = h.psn||''; comp.cdn = h.cdn||''; comp.steps = importParsed.steps;
+  await registerImportedMachines(comp.steps);
   p.components.push(comp);
-  const ok = await updateProjectRow(targetId, {components:p.components, updated_at:new Date().toISOString()});
+  if(!p.customer && h.customerName) p.customer = h.customerName;
+  const ok = await updateProjectRow(targetId, {components:p.components, customer:p.customer, updated_at:new Date().toISOString()});
   closeImportModal();
   if(ok){
     showToast('Component added to project');
